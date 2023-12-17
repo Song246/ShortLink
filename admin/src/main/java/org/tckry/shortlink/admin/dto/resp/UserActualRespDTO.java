@@ -5,10 +5,10 @@ import lombok.Data;
 import org.tckry.shortlink.admin.common.serialize.PhoneDesensitizationSerializer;
 
 /**
- * 返回用户参数响应
+ * 返回无脱敏用户参数响应
  */
 @Data
-public class UserRespDTO {
+public class UserActualRespDTO {
 
     /**
      * id
@@ -28,7 +28,7 @@ public class UserRespDTO {
     /**
      * 手机号
      */
-    @JsonSerialize(using = PhoneDesensitizationSerializer.class)    // 在对PhoneDesensitizationSerializer这个对象序列化的时候去读取这个字段进行反解析处理，脱敏
+//    @JsonSerialize(using = PhoneDesensitizationSerializer.class)    // 在对PhoneDesensitizationSerializer这个对象序列化的时候去读取这个字段进行反解析处理，脱敏
     private String phone;
 
     /**

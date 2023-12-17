@@ -1,12 +1,14 @@
 package org.tckry.shortlink.admin.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
 import org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum;
+import org.tckry.shortlink.admin.dto.req.UserRegisterReqDTO;
+import org.tckry.shortlink.admin.dto.resp.UserActualRespDTO;
 import org.tckry.shortlink.admin.dto.resp.UserRespDTO;
 import org.tckry.shortlink.admin.service.UserService;
 
@@ -25,7 +27,7 @@ public class UserController {
     /**
      * 根据用户名查询应用户信息
      */
-    @GetMapping("/api/shortlink/v1/user/{username}")
+    @GetMapping("/api/short-link/v1/user/{username}")
     public Result<UserRespDTO> getUserByUsername(@PathVariable("username") String username) {
 
         // 查出空的话报错
@@ -45,4 +47,35 @@ public class UserController {
 
     }
 
+    /**
+    * 根据用户名查询应用户无脱敏信息
+    */
+
+    @GetMapping("/api/short-link/v1/actual/user/{username}")
+    public Result<UserActualRespDTO> getActualUserByUsername(@PathVariable("username") String username) {
+        // 获取无脱敏的真实数据
+        return Results.success(BeanUtil.toBean(userService.getUserByUsername(username),UserActualRespDTO.class));
+
+    }
+
+    /** 
+    * 查询用户名是否已存在
+    */
+    @GetMapping("/api/short-link/v1//user/has-username")
+    public Result<Boolean> hasUsername(@RequestParam("username") String username) {
+        return Results.success(userService.hasUsername(username));
+    }
+
+    /**
+    * 注册用户
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.admin.common.convention.result.Result<T>
+    * @Date: 2023/12/17
+    */
+
+    @PostMapping("/api/short-link/v1/user") // Restful风格，前面POST代表插入，不需要在url中定义url的saveUser
+    public Result<Void> register(@RequestBody UserRegisterReqDTO requestParam){ //  Results.success();必须要返回值，所以方法声明T为大写Voidpublic Result<Void>
+        userService.register(requestParam);
+        return Results.success();
+    }
 }
