@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBloomFilter;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.tckry.shortlink.admin.common.convention.exception.ClientException;
@@ -17,6 +19,7 @@ import org.tckry.shortlink.admin.dto.req.UserRegisterReqDTO;
 import org.tckry.shortlink.admin.dto.resp.UserRespDTO;
 import org.tckry.shortlink.admin.service.UserService;
 
+import static org.tckry.shortlink.admin.common.constant.RedisCacheConstant.LOCK_USER_REGISTER_KEY;
 import static org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum.USER_NAME_EXIST;
 import static org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum.USER_SAVE_ERROR;
 
@@ -29,6 +32,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     // 不用再引mapper，ServiceImpl里面注入了
 
     private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
+    private final RedissonClient redissonClient;
 
     @Override
     public UserRespDTO getUserByUsername(String username) {
@@ -60,11 +64,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         if (!hasUsername(requestParam.getUsername())) {
             throw new ClientException(USER_NAME_EXIST);
         }
-        int inserted = baseMapper.insert(BeanUtil.toBean(requestParam, UserDO.class));  //  BeanUtil.toBean方法,此处并不是传Bean对象,而是Bean类,Hutool会自动调用默认构造方法创建对象
-        if (inserted < 1){
-            throw new ClientException(USER_SAVE_ERROR); // 一般业务层用save，持久层采用insert
+
+        // redissonClient 分布式锁机制防止同一时间多个未注册的name去请求数据库，防止恶意请求毫秒级触发大量请求去一个未注册的用户名
+        RLock lock = redissonClient.getLock(LOCK_USER_REGISTER_KEY+requestParam.getUsername()); // 拼一个username，不然成全局锁
+        try {
+            if(lock.tryLock()) {    // 不用lock.lock（），使用tryLock（）；lock会一直等待上一个锁释放；tryLock只要有一个获取到就认为成功
+                int inserted = baseMapper.insert(BeanUtil.toBean(requestParam, UserDO.class));  //  BeanUtil.toBean方法,此处并不是传Bean对象,而是Bean类,Hutool会自动调用默认构造方法创建对象
+                if (inserted < 1){
+                    throw new ClientException(USER_SAVE_ERROR); // 一般业务层用save，持久层采用insert
+                }
+                userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());    // 新数据插入布隆过滤器，保证布隆过滤器和数据库一致
+                return;
+            }else {
+                throw new ClientException(UserErrorCodeEnum.USER_NAME_EXIST);
+            }
+        } finally {
+            lock.unlock();
         }
-        userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());    // 新数据插入布隆过滤器，保证布隆过滤器和数据库一致
+
 
     }
 }
