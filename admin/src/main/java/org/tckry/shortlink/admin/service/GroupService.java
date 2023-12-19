@@ -35,7 +35,7 @@ public interface GroupService extends IService<GroupDO> {
     * @Date: 2023/12/19
     */
 
-    Void updateGroup(ShortLinkGroupUpdateReqDTO requestParam);
+    void updateGroup(ShortLinkGroupUpdateReqDTO requestParam);
 
     /** 
     * 删除短链接

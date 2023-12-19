@@ -50,7 +50,8 @@ public class GroupController {
     */
     @PutMapping("/api/short-link/v1/group")
     public Result<Void> updateGroup(@RequestBody ShortLinkGroupUpdateReqDTO requestParam){
-        return Results.success(groupService.updateGroup(requestParam));
+        groupService.updateGroup(requestParam);
+        return Results.success();
     }
 
     /**

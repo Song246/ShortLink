@@ -68,7 +68,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
     */
 
     @Override
-    public Void updateGroup(ShortLinkGroupUpdateReqDTO requestParam) {
+    public void updateGroup(ShortLinkGroupUpdateReqDTO requestParam) {
         LambdaUpdateWrapper<GroupDO> updateWrapper = Wrappers.lambdaUpdate(GroupDO.class)
                 .eq(GroupDO::getUsername, UserContext.getUsername())
                 .eq(GroupDO::getGid, requestParam.getGid())
