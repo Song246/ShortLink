@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.tckry.shortlink.admin.common.biz.user.UserContext;
 import org.tckry.shortlink.admin.dao.entity.GroupDO;
 import org.tckry.shortlink.admin.dao.mapper.GroupMapper;
+import org.tckry.shortlink.admin.dto.req.ShortLinkGroupSortReqDTO;
 import org.tckry.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import org.tckry.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
 import org.tckry.shortlink.admin.service.GroupService;
@@ -88,6 +89,20 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
         GroupDO groupDO = new GroupDO();
         groupDO.setDelFlag(1);
         baseMapper.update(groupDO, updateWrapper);
+    }
+
+    @Override
+    public void sortGroup(List<ShortLinkGroupSortReqDTO> requestParam) {
+        requestParam.forEach(each->{
+            GroupDO groupDO = GroupDO.builder()
+                    .sortOrder(each.getSortOrder()) // 只修改 顺序，只build的这个值
+                    .build();
+            LambdaUpdateWrapper<GroupDO> updateWrapper = Wrappers.lambdaUpdate(GroupDO.class)
+                    .eq(GroupDO::getUsername, UserContext.getUsername())
+                    .eq(GroupDO::getGid, each.getGid())
+                    .eq(GroupDO::getDelFlag, 0);
+            baseMapper.update(groupDO,updateWrapper);
+        });
     }
 
     private boolean hasGid(String gid){

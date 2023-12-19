@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
 import org.tckry.shortlink.admin.dto.req.ShortLinkGroupSaveReqDTO;
+import org.tckry.shortlink.admin.dto.req.ShortLinkGroupSortReqDTO;
 import org.tckry.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import org.tckry.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
 import org.tckry.shortlink.admin.service.GroupService;
@@ -63,6 +64,12 @@ public class GroupController {
     @DeleteMapping("/api/short-link/v1/group")
     public Result<Void> deleteGroup(@RequestParam("gid") String gid){
         groupService.deleteGroup(gid);
+        return Results.success();
+    }
+
+    @PostMapping("/api/short-link/v1/group/sort")
+    public Result<Void> sortGroup(@RequestBody List<ShortLinkGroupSortReqDTO> requestParam) {
+        groupService.sortGroup(requestParam);
         return Results.success();
     }
 }

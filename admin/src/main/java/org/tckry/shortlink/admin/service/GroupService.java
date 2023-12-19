@@ -2,6 +2,7 @@ package org.tckry.shortlink.admin.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.tckry.shortlink.admin.dao.entity.GroupDO;
+import org.tckry.shortlink.admin.dto.req.ShortLinkGroupSortReqDTO;
 import org.tckry.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import org.tckry.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
 
@@ -44,4 +45,12 @@ public interface GroupService extends IService<GroupDO> {
     * @Date: 2023/12/19
     */
     void deleteGroup(String gid);
+
+    /**
+    * 短链接分组排序
+    * @Param: [requestParam]
+    * @return: void
+    * @Date: 2023/12/19
+    */
+    void sortGroup(List<ShortLinkGroupSortReqDTO> requestParam);
 }
