@@ -2,6 +2,7 @@ package org.tckry.shortlink.admin.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.tckry.shortlink.admin.dao.entity.GroupDO;
+import org.tckry.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import org.tckry.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
 
 import java.util.List;
@@ -26,4 +27,13 @@ public interface GroupService extends IService<GroupDO> {
     * @Date: 2023/12/19
     */
     List<ShortLinkGroupRespDTO> listGroup();
+
+    /**
+    * 修改短链接分组名称
+    * @Param: [requestParam]
+    * @return: java.lang.Void
+    * @Date: 2023/12/19
+    */
+
+    Void updateGroup(ShortLinkGroupUpdateReqDTO requestParam);
 }

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
 import org.tckry.shortlink.admin.dto.req.ShortLinkGroupSaveReqDTO;
+import org.tckry.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import org.tckry.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
 import org.tckry.shortlink.admin.service.GroupService;
 
@@ -39,5 +40,16 @@ public class GroupController {
     @GetMapping("/api/short-link/v1/group")
     public Result<List<ShortLinkGroupRespDTO>> listGroup(){
         return Results.success(groupService.listGroup());
+    }
+
+    /** 
+    * 修改短链接分组名称
+    * @Param: [requestParam]
+    * @return:
+    * @Date: 2023/12/19
+    */
+    @PutMapping("/api/short-link/v1/group")
+    public Result<Void> updateGroup(@RequestBody ShortLinkGroupUpdateReqDTO requestParam){
+        return Results.success(groupService.updateGroup(requestParam));
     }
 }
