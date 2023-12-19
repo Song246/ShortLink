@@ -60,6 +60,13 @@ public interface UserService extends IService<UserDO> {
     * @return: java.lang.Boolean
     * @Date: 2023/12/18
     */
-
     Boolean checkLogin(String username, String token);
+
+    /**
+    * 用户退出登录
+    * @Param: [username, token]
+    * @return: void
+    * @Date: 2023/12/19
+    */
+    void logout(String username, String token);
 }
