@@ -1,5 +1,6 @@
 package org.tckry.shortlink.admin.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -7,8 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.tckry.shortlink.admin.dao.entity.GroupDO;
 import org.tckry.shortlink.admin.dao.mapper.GroupMapper;
+import org.tckry.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
 import org.tckry.shortlink.admin.service.GroupService;
 import org.tckry.shortlink.admin.toolkit.RandomGenerator;
+
+import java.util.List;
 
 /**
  * 短链接分组接口实现曾
@@ -34,6 +38,25 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
                 .build();
 
         baseMapper.insert(groupDO);
+    }
+
+    /**
+    * 查询用户短链接分组集合
+    * @Param: []
+    * @return: 短链接分组集合
+    * @Date: 2023/12/19
+    */
+
+    @Override
+    public List<ShortLinkGroupRespDTO> listGroup() {
+        // TODO 从当前请求里面获取用户名，由网关管理，这里先不做
+        LambdaQueryWrapper<GroupDO> queryWrapper = Wrappers.lambdaQuery(GroupDO.class)
+                .eq(GroupDO::getDelFlag,0)
+                .eq(GroupDO::getUsername, "mading")
+                .orderByDesc(GroupDO::getSortOrder, GroupDO::getUpdateTime);
+
+        List<GroupDO> groupDOList = baseMapper.selectList(queryWrapper);
+        return BeanUtil.copyToList(groupDOList, ShortLinkGroupRespDTO.class);
     }
 
     private boolean hasGid(String gid){
