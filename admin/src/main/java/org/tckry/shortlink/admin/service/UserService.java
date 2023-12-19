@@ -2,7 +2,10 @@ package org.tckry.shortlink.admin.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.tckry.shortlink.admin.dao.entity.UserDO;
+import org.tckry.shortlink.admin.dto.req.UserLoginReqDTO;
 import org.tckry.shortlink.admin.dto.req.UserRegisterReqDTO;
+import org.tckry.shortlink.admin.dto.req.UserUpdateReqDTO;
+import org.tckry.shortlink.admin.dto.resp.UserLoginRespDTO;
 import org.tckry.shortlink.admin.dto.resp.UserRespDTO;
 
 /**
@@ -33,6 +36,30 @@ public interface UserService extends IService<UserDO> {
     * @return: void
     * @Date: 2023/12/17
     */
-    
     void register(UserRegisterReqDTO requestParam);
+
+    /** 
+    * 根据用户名修改用户
+    * @Param: [requestParam]
+    * @return: void
+    * @Date: 2023/12/18
+    */
+    void update(UserUpdateReqDTO requestParam);
+
+    /**
+    * 用户登录
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.admin.dto.resp.UserLoginRespDTO
+    * @Date: 2023/12/18
+    */
+    UserLoginRespDTO login(UserLoginReqDTO requestParam);
+
+    /**
+    * 检查用户登录
+    * @Param: [token] 用户登录token
+    * @return: java.lang.Boolean
+    * @Date: 2023/12/18
+    */
+
+    Boolean checkLogin(String username, String token);
 }

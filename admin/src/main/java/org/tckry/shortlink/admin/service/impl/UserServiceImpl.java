@@ -1,8 +1,12 @@
 package org.tckry.shortlink.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.UUID;
+import cn.hutool.crypto.SecureUtil;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -10,14 +14,21 @@ import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.tckry.shortlink.admin.common.convention.exception.ClientException;
 import org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum;
 import org.tckry.shortlink.admin.dao.entity.UserDO;
 import org.tckry.shortlink.admin.dao.mapper.UserMapper;
+import org.tckry.shortlink.admin.dto.req.UserLoginReqDTO;
 import org.tckry.shortlink.admin.dto.req.UserRegisterReqDTO;
+import org.tckry.shortlink.admin.dto.req.UserUpdateReqDTO;
+import org.tckry.shortlink.admin.dto.resp.UserLoginRespDTO;
 import org.tckry.shortlink.admin.dto.resp.UserRespDTO;
 import org.tckry.shortlink.admin.service.UserService;
+
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import static org.tckry.shortlink.admin.common.constant.RedisCacheConstant.LOCK_USER_REGISTER_KEY;
 import static org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum.USER_NAME_EXIST;
@@ -33,6 +44,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
     private final RedissonClient redissonClient;
+    private final StringRedisTemplate stringRedisTemplate;  // redis 依赖
 
     @Override
     public UserRespDTO getUserByUsername(String username) {
@@ -83,5 +95,53 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
 
 
+    }
+
+    @Override
+    public void update(UserUpdateReqDTO requestParam) {
+        // TODO 验证当前用户名是否为登录用户，当前用户的token只能修改当前用户，避免张三账号知道李四接口，去修改李四；后面依赖网关，这里先TODO
+        LambdaUpdateWrapper<UserDO> updateWrapper = Wrappers.lambdaUpdate(UserDO.class)
+                .eq(UserDO::getUsername, requestParam.getUsername());
+        baseMapper.update(BeanUtil.toBean(requestParam,UserDO.class),updateWrapper);
+    }
+
+    @Override
+    public UserLoginRespDTO login(UserLoginReqDTO requestParam) {
+        // 1、验证用户名和密码是否存在数据库
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .eq(UserDO::getUsername, requestParam.getUsername())
+                .eq(UserDO::getPassword, requestParam.getPassword())
+                .eq(UserDO::getDelFlag, 0);// 未注销的用户，数据库软注销
+        UserDO userDO = baseMapper.selectOne(queryWrapper);
+        if (userDO==null) {
+            throw new ClientException("用户不存在");
+        }
+        Boolean hasLogin = stringRedisTemplate.hasKey("login_"+requestParam.getUsername());
+        if (hasLogin!=null&& hasLogin){
+            throw new ClientException("用户已登录");
+        }
+        /*
+        * Hash
+        * key: login_用户名
+        * Value:
+        *   key: token标识(生成的uuid)
+        *   value: JSON 字符串（用户信息）
+        * */
+        String uuid = UUID.randomUUID().toString();
+        stringRedisTemplate.opsForHash().put("login_"+requestParam.getUsername(),uuid,JSON.toJSONString(userDO));
+        // 设置过期时间30分钟
+        stringRedisTemplate.expire("login_"+requestParam.getUsername(),30L,TimeUnit.MINUTES);
+        return new UserLoginRespDTO(uuid);
+    }
+
+    /** 
+    * 检查用户是否登录
+    * @Param: [token]
+    * @return: java.lang.Boolean
+    * @Date: 2023/12/18
+    */
+    @Override
+    public Boolean checkLogin(String username, String token) {
+        return stringRedisTemplate.opsForHash().get("login_" + username, token)!=null;
     }
 }

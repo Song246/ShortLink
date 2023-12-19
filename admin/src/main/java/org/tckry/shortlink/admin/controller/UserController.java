@@ -7,8 +7,11 @@ import org.springframework.web.bind.annotation.*;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
 import org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum;
+import org.tckry.shortlink.admin.dto.req.UserLoginReqDTO;
 import org.tckry.shortlink.admin.dto.req.UserRegisterReqDTO;
+import org.tckry.shortlink.admin.dto.req.UserUpdateReqDTO;
 import org.tckry.shortlink.admin.dto.resp.UserActualRespDTO;
+import org.tckry.shortlink.admin.dto.resp.UserLoginRespDTO;
 import org.tckry.shortlink.admin.dto.resp.UserRespDTO;
 import org.tckry.shortlink.admin.service.UserService;
 
@@ -72,10 +75,43 @@ public class UserController {
     * @return: org.tckry.shortlink.admin.common.convention.result.Result<T>
     * @Date: 2023/12/17
     */
-
     @PostMapping("/api/short-link/v1/user") // Restful风格，前面POST代表插入，不需要在url中定义url的saveUser
     public Result<Void> register(@RequestBody UserRegisterReqDTO requestParam){ //  Results.success();必须要返回值，所以方法声明T为大写Voidpublic Result<Void>
         userService.register(requestParam);
         return Results.success();
     }
+
+    /**
+    * 根据用户名修改用户
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.admin.common.convention.result.Result<java.lang.Void>
+    * @Date: 2023/12/18
+    */
+    @PutMapping("/api/short-link/v1/user")  // Restful风格，通过语义判断修改用户，url中不用添加额外内容
+    public Result<Void> update(@RequestBody UserUpdateReqDTO requestParam) {
+        userService.update(requestParam);
+        return Results.success();
+    }
+
+    /**
+     * 用户登录
+     * @param requestParam
+     * @return
+     */
+    @PostMapping("/api/short-link/v1/user/login")
+    public Result<UserLoginRespDTO> login(@RequestBody UserLoginReqDTO requestParam) {  // 登录返回一个String 的token，但是为了后期的扩展，这里把token封装到类里了
+        return Results.success(userService.login(requestParam));
+    }
+
+    /**
+    * 检查用户是否登录
+    * @Param: [token]
+    * @return: org.tckry.shortlink.admin.common.convention.result.Result<java.lang.Boolean>
+    * @Date: 2023/12/18
+    */
+    @GetMapping("/api/short-link/v1/user/check-login")
+    public Result<Boolean> checkLogin(@RequestParam("username") String username,@RequestParam("token") String token){
+        return Results.success(userService.checkLogin(username,token));
+    }
+
 }
