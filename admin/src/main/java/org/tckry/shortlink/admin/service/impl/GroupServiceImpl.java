@@ -76,7 +76,18 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
         GroupDO groupDO = new GroupDO();
         groupDO.setName(requestParam.getName());    // 修改分组名称
         baseMapper.update(groupDO, updateWrapper);
-        return null;
+    }
+
+    @Override
+    public void deleteGroup(String gid) {
+        //采用软删除的方式，update ，delflag设为1
+        LambdaUpdateWrapper<GroupDO> updateWrapper = Wrappers.lambdaUpdate(GroupDO.class)
+                .eq(GroupDO::getUsername, UserContext.getUsername())
+                .eq(GroupDO::getGid, gid)
+                .eq(GroupDO::getDelFlag, 0);
+        GroupDO groupDO = new GroupDO();
+        groupDO.setDelFlag(1);
+        baseMapper.update(groupDO, updateWrapper);
     }
 
     private boolean hasGid(String gid){

@@ -52,4 +52,16 @@ public class GroupController {
     public Result<Void> updateGroup(@RequestBody ShortLinkGroupUpdateReqDTO requestParam){
         return Results.success(groupService.updateGroup(requestParam));
     }
+
+    /**
+    * 删除短链接分组
+    * @Param: [gid]
+    * @return: org.tckry.shortlink.admin.common.convention.result.Result<java.lang.Void>
+    * @Date: 2023/12/19
+    */
+    @DeleteMapping("/api/short-link/v1/group")
+    public Result<Void> deleteGroup(@RequestParam("gid") String gid){
+        groupService.deleteGroup(gid);
+        return Results.success();
+    }
 }
