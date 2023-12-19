@@ -8,5 +8,12 @@ import org.tckry.shortlink.admin.dao.entity.GroupDO;
 */
 
 public interface GroupService extends IService<GroupDO> {
+    /**
+    * 新增短链接分组
+    * @Param: [groupName] 短链接分组名
+    * @return: void
+    * @Date: 2023/12/19
+    */
 
+    void saveGroup(String groupName);
 }
