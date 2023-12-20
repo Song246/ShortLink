@@ -42,9 +42,8 @@ public class ShortLinkController {
     * @return:
     * @Date: 2023/12/20
     */
-
     @GetMapping("/api/short-link/v1/page")
-    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(@RequestBody ShortLinkPageReqDTO requestParam){
+    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO requestParam){ // GET 请求，body不带数据，这个get请求，它传递的是param（接在url后面），所以不拿requestbody接（请求体），不用@RequestBody
         return Results.success(shortLinkService.pageShortLink(requestParam));
     }
 }
