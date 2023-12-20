@@ -41,7 +41,7 @@ public class UserTransmitFilter implements Filter {
                 String token = httpServletRequest.getHeader("token");
                 // 这里要使用isAllNotBlank，概述比较全部，isEmpty不全面
                 if (!StrUtil.isAllNotBlank(username,token)) { // username、token万一为空
-                    // throw new ClientException(USER_TOKEN_FAIL); 直接return捕获不到错误？？
+                    // throw new ClientException(USER_TOKEN_FAIL); 直接return捕获不到错误？？ 全局异常捕获不到过滤器异常
                     returnJson((HttpServletResponse) servletResponse,JSON.toJSONString(new ClientException(USER_TOKEN_FAIL)));
                     return;
                 }
@@ -49,12 +49,12 @@ public class UserTransmitFilter implements Filter {
                 try {
                     userInfoJsonStr = stringRedisTemplate.opsForHash().get("login_" + username, token);
                     if (userInfoJsonStr == null) {
-                        // throw new ClientException(USER_TOKEN_FAIL); 直接return捕获不到错误？？
+                        // throw new ClientException(USER_TOKEN_FAIL); 直接return捕获不到错误？？全局异常捕获不到过滤器异常
                         returnJson((HttpServletResponse) servletResponse,JSON.toJSONString(new ClientException(USER_TOKEN_FAIL)));
                         return;
                     }
                 }catch (Exception ex){
-                    // throw new ClientException(USER_TOKEN_FAIL); 直接return捕获不到错误？？
+                    // throw new ClientException(USER_TOKEN_FAIL); 直接return捕获不到错误？？全局异常捕获不到过滤器异常
                     returnJson((HttpServletResponse) servletResponse,JSON.toJSONString(new ClientException(USER_TOKEN_FAIL)));
                     return;
                 }
