@@ -60,6 +60,23 @@
             <artifactId>fastjson2</artifactId>
         </dependency>
     </dependencies>
+    <!-- 打包插件，repackage 包含一个可直接启动的springboot jar包，，没有下面插件的话打包只有源码   -->
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 
 
