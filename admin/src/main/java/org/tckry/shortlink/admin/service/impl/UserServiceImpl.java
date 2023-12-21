@@ -14,6 +14,7 @@ import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.tckry.shortlink.admin.common.convention.exception.ClientException;
@@ -31,8 +32,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.tckry.shortlink.admin.common.constant.RedisCacheConstant.LOCK_USER_REGISTER_KEY;
-import static org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum.USER_NAME_EXIST;
-import static org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum.USER_SAVE_ERROR;
+import static org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum.*;
 
 /**
  * 用户接口实现层
@@ -81,10 +81,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         RLock lock = redissonClient.getLock(LOCK_USER_REGISTER_KEY+requestParam.getUsername()); // 拼一个username，不然成全局锁
         try {
             if(lock.tryLock()) {    // 不用lock.lock（），使用tryLock（）；lock会一直等待上一个锁释放；tryLock只要有一个获取到就认为成功
-                int inserted = baseMapper.insert(BeanUtil.toBean(requestParam, UserDO.class));  //  BeanUtil.toBean方法,此处并不是传Bean对象,而是Bean类,Hutool会自动调用默认构造方法创建对象
-                if (inserted < 1){
-                    throw new ClientException(USER_SAVE_ERROR); // 一般业务层用save，持久层采用insert
+
+                try {
+                    int inserted = baseMapper.insert(BeanUtil.toBean(requestParam, UserDO.class));  //  BeanUtil.toBean方法,此处并不是传Bean对象,而是Bean类,Hutool会自动调用默认构造方法创建对象
+                    if (inserted < 1){
+                        throw new ClientException(USER_SAVE_ERROR); // 一般业务层用save，持久层采用insert
+                    }
+                }catch (DuplicateKeyException ex){  // 索引重复
+                    throw new ClientException(USER_EXIST); // 一般业务层用save，持久层采用insert
                 }
+
+
                 userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());    // 新数据插入布隆过滤器，保证布隆过滤器和数据库一致
                 return;
             }else {
