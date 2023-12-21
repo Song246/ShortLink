@@ -61,7 +61,6 @@ public class UserTransmitFilter implements Filter {
 
                 UserInfoDTO userInfoDTO = JSON.parseObject(userInfoJsonStr.toString(), UserInfoDTO.class);
                 UserContext.setUser(userInfoDTO);   // 将当前对象放到上下文
-
             }
 
         }
