@@ -155,7 +155,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     @Override
     public void logout(String username, String token) {
         if (checkLogin(username, token)){
-            stringRedisTemplate.opsForHash().delete("login"+username);
+            stringRedisTemplate.delete("login_"+username);
             return;
         }else {
             throw new ClientException("用户tokne不存在或者未登录");
