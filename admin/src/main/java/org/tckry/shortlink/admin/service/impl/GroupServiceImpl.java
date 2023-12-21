@@ -35,6 +35,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
         GroupDO groupDO = GroupDO.builder()
                 .name(groupName)
                 .gid(gid)
+                .username(UserContext.getUsername())
                 .sortOrder(0)
                 .build();
 
@@ -53,7 +54,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
         // TODO 从当前请求里面获取用户名，由网关管理，这里先不做
         LambdaQueryWrapper<GroupDO> queryWrapper = Wrappers.lambdaQuery(GroupDO.class)
                 .eq(GroupDO::getDelFlag,0)
-                .eq(GroupDO::getUsername, "mading")
+//                .eq(GroupDO::getUsername, "mading")
                 .eq(GroupDO::getUsername,UserContext.getUsername())
                 .orderByDesc(GroupDO::getSortOrder, GroupDO::getUpdateTime);
 
@@ -109,8 +110,8 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
         LambdaQueryWrapper<GroupDO> queryWrapper = Wrappers.lambdaQuery(GroupDO.class)
                 .eq(GroupDO::getDelFlag,0)
                 .eq(GroupDO::getGid, gid)
-                .eq(GroupDO::getUsername,UserContext.getUsername())
-                .eq(GroupDO::getUsername, null);
+                //                .eq(GroupDO::getUsername, null);
+                .eq(GroupDO::getUsername,UserContext.getUsername());
         GroupDO hasGroupFlag = baseMapper.selectOne(queryWrapper);
         return hasGroupFlag ==null;
     }
