@@ -6,7 +6,7 @@ spring:
     # ShardingSphere 对 Driver 自定义，实现分库分表等隐藏逻辑,ShardingSphereDriver不再是MysqlDriver
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
     # ShardingSphere 配置文件路径，里面分库分表的核心配置文件
-    url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
+    url: jdbc:shardingsphere:classpath:shardingsphere-config-${database.dev:dev}.yaml
     #    # 使用分表的方式，下面的相关数据库配置替换为上面的shardingsphere的相关配置
     #  datasource:
     #    username: root
