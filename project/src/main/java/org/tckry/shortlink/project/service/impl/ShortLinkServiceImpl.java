@@ -3,6 +3,7 @@ package org.tckry.shortlink.project.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.text.StrBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -18,9 +19,13 @@ import org.tckry.shortlink.project.dao.mapper.ShortLinkMapper;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
+import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import org.tckry.shortlink.project.service.ShortLinkService;
 import org.tckry.shortlink.project.toolkit.HashUtil;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 短链接接口实现层
@@ -35,6 +40,7 @@ import org.tckry.shortlink.project.toolkit.HashUtil;
 public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLinkDO> implements ShortLinkService {
 
     private final RBloomFilter<String> shortUriCreateCachePenetrationBloomFilter;
+    private final ShortLinkMapper shortLinkMapper;
 
     /**
     * 创建短链接
@@ -92,6 +98,24 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         IPage<ShortLinkDO> resulPage = baseMapper.selectPage(requestParam,queryWrapper);   //ShortLinkPageReqDTO 继承了Page对象
         // ShortLinkDO 转 ShortLinkPageRespDTO
         return resulPage.convert(each-> BeanUtil.toBean(each,ShortLinkPageRespDTO.class));
+    }
+
+    /**
+    * 查询短链接分组内数量
+    * @Param: [requestParam]
+    * @return:
+    * @Date: 2023/12/21
+    */
+    @Override
+    public List<ShortLinkGroupCountQueryRespDTO> listGroupShortLinkCount(List<String> requestParam) {
+        // select gid,count(*) from t_link where enable_status=0 and gid= in (x,x,x) group by gid
+        QueryWrapper<ShortLinkDO> queryWrapper = Wrappers.query(new ShortLinkDO())
+                .select("gid", "count(*) as shortLinkCount")
+                .in("gid", requestParam)
+                .eq("enable_status", 0)
+                .groupBy("gid");
+        List<Map<String, Object>> shortLinkDOList = baseMapper.selectMaps(queryWrapper);    // selectMaps,查询多个字段的多条记录
+        return BeanUtil.copyToList(shortLinkDOList,ShortLinkGroupCountQueryRespDTO.class);
     }
 
 

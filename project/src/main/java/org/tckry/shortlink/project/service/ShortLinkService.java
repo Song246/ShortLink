@@ -6,7 +6,10 @@ import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
+import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
+
+import java.util.List;
 
 /**
  * 短链接接口层
@@ -31,6 +34,13 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
     * @return:
     * @Date: 2023/12/20
     */
-
     IPage<ShortLinkPageRespDTO> pageShortLink(ShortLinkPageReqDTO requestParam);
+
+    /**
+    * 查询短链接分组内数量
+    * @Param: [requestParam]
+    * @return: java.util.List<org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO>
+    * @Date: 2023/12/21
+    */
+    List<ShortLinkGroupCountQueryRespDTO> listGroupShortLinkCount(List<String> requestParam);
 }
