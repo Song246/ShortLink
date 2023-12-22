@@ -46,7 +46,7 @@ public class ShortLinkController {
     * @return: org.tckry.shortlink.project.common.convention.result.Result<java.lang.Void>
     * @Date: 2023/12/22
     */
-    @PutMapping("/api/short-link/v1/update")
+    @PostMapping("/api/short-link/v1/update")
     public Result<Void> updateShortLink(@RequestBody ShortLinkUpdateReqDTO  requestParam) {
         shortLinkService.updateShortLink(requestParam);
         return Results.success();

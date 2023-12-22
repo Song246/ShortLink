@@ -41,8 +41,7 @@ public interface ShortLinkRemoteService {
      * @Date: 2023/12/22
      */
     default void updateShortLink(ShortLinkUpdateReqDTO requestParam){
-        String resultBodyStr = HttpUtil.post("http://localhost:8001/api/short-link/v1/update",JSON.toJSONString(requestParam));
-
+        HttpUtil.post("http://localhost:8001/api/short-link/v1/update",JSON.toJSONString(requestParam));
     }
     
     /** 
