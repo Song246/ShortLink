@@ -26,6 +26,7 @@ import org.tckry.shortlink.admin.dto.req.UserRegisterReqDTO;
 import org.tckry.shortlink.admin.dto.req.UserUpdateReqDTO;
 import org.tckry.shortlink.admin.dto.resp.UserLoginRespDTO;
 import org.tckry.shortlink.admin.dto.resp.UserRespDTO;
+import org.tckry.shortlink.admin.service.GroupService;
 import org.tckry.shortlink.admin.service.UserService;
 
 import java.util.Objects;
@@ -45,6 +46,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
     private final RedissonClient redissonClient;
     private final StringRedisTemplate stringRedisTemplate;  // redis 依赖
+    private final GroupService groupService;
 
     @Override
     public UserRespDTO getUserByUsername(String username) {
@@ -93,6 +95,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
 
                 userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());    // 新数据插入布隆过滤器，保证布隆过滤器和数据库一致
+                // 注册用户创建默认分组
+                groupService.saveGroup("默认分组");
                 return;
             }else {
                 throw new ClientException(UserErrorCodeEnum.USER_NAME_EXIST);
@@ -100,6 +104,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         } finally {
             lock.unlock();
         }
+
 
 
     }
