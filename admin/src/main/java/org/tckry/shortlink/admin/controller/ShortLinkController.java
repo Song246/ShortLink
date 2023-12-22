@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
-import org.tckry.shortlink.admin.remote.dto.ShortLinkRemoteService;
+import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkCreateRespDTO;
@@ -23,7 +23,6 @@ import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkPageRespDTO;
 public class ShortLinkController {
 
     // TODO 后续重构为Spring Cloud　Feign 调用
-
     ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService(){};
 
     /**

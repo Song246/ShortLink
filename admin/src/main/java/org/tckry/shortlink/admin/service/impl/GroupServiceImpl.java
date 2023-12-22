@@ -8,15 +8,20 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.tckry.shortlink.admin.common.biz.user.UserContext;
+import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.dao.entity.GroupDO;
 import org.tckry.shortlink.admin.dao.mapper.GroupMapper;
 import org.tckry.shortlink.admin.dto.req.ShortLinkGroupSortReqDTO;
 import org.tckry.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import org.tckry.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
+import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
+import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.admin.service.GroupService;
 import org.tckry.shortlink.admin.toolkit.RandomGenerator;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 短链接分组接口实现曾
@@ -24,6 +29,9 @@ import java.util.List;
 @Slf4j
 @Service
 public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implements GroupService {
+
+    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService(){};
+
 
     @Override
     public void saveGroup(String groupName) {
@@ -54,12 +62,24 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
         // TODO 从当前请求里面获取用户名，由网关管理，这里先不做
         LambdaQueryWrapper<GroupDO> queryWrapper = Wrappers.lambdaQuery(GroupDO.class)
                 .eq(GroupDO::getDelFlag,0)
-//                .eq(GroupDO::getUsername, "mading")
                 .eq(GroupDO::getUsername,UserContext.getUsername())
                 .orderByDesc(GroupDO::getSortOrder, GroupDO::getUpdateTime);
-
         List<GroupDO> groupDOList = baseMapper.selectList(queryWrapper);
-        return BeanUtil.copyToList(groupDOList, ShortLinkGroupRespDTO.class);
+
+        // 把每个分组内的短链接数量封装进分组集合ShortLinkGroupRespDTO
+        Result<List<ShortLinkGroupCountQueryRespDTO>> listResult = shortLinkRemoteService
+                .listGroupShortLinkCount(groupDOList.stream().map(GroupDO::getGid).toList());// List<GroupDO>转 List<String>的gid集合
+
+        List<ShortLinkGroupRespDTO> shortLinkGroupRespDTOList = BeanUtil.copyToList(groupDOList, ShortLinkGroupRespDTO.class);  // List<GroupDO>转 List<ShortLinkGroupRespDTO，但是集合内的ShortLinkGroupRespDTO数量字段还为空
+        // 为List内的每个ShortLinkGroupRespDTO对象设置分组内的连接总数量
+        shortLinkGroupRespDTOList.forEach(each->{
+            Optional<ShortLinkGroupCountQueryRespDTO> first = listResult.getData().stream()
+                    .filter(item -> Objects.equals(item.getGid(), each.getGid()))   // 找到当前shortLinkGroupRespDTO的gid在用户gid集合里相等的gid
+                    .findFirst();
+            // first 为空才设置
+            first.ifPresent(item -> each.setShortLinkCount(first.get().getShortLinkCount()));
+        });
+        return shortLinkGroupRespDTOList;
     }
 
     /**
