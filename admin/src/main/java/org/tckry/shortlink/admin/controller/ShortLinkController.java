@@ -1,11 +1,10 @@
 package org.tckry.shortlink.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
+import org.tckry.shortlink.admin.dto.req.ShortLinkUpdateReqDTO;
 import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
@@ -31,9 +30,21 @@ public class ShortLinkController {
     * @return:
     * @Date: 2023/12/21
     */
-    @PostMapping("/api/short-link/v1/create")
-    public Result<ShortLinkCreateRespDTO> createShortLink(ShortLinkCreateReqDTO requestParam){
+    @PostMapping("/api/short-link/admin/v1/create")
+    public Result<ShortLinkCreateRespDTO> createShortLink(@RequestBody ShortLinkCreateReqDTO requestParam){
         return shortLinkRemoteService.createShortLink(requestParam);
+    }
+
+    /**
+     * 修改短链接
+     * @Param: [requestParam]
+     * @return: org.tckry.shortlink.project.common.convention.result.Result<java.lang.Void>
+     * @Date: 2023/12/22
+     */
+    @PutMapping("/api/short-link/admin/v1/update")
+    public Result<Void> updateShortLink(@RequestBody ShortLinkUpdateReqDTO requestParam) {
+        shortLinkRemoteService.updateShortLink(requestParam);
+        return Results.success();
     }
 
     /**

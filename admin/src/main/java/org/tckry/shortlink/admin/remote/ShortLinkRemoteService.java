@@ -6,6 +6,7 @@ import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.tckry.shortlink.admin.common.convention.result.Result;
+import org.tckry.shortlink.admin.dto.req.ShortLinkUpdateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkCreateRespDTO;
@@ -33,6 +34,16 @@ public interface ShortLinkRemoteService {
         });
     }
 
+    /**
+     * 短链接修改
+     * @Param: [requestParam]
+     * @return: void
+     * @Date: 2023/12/22
+     */
+    default void updateShortLink(ShortLinkUpdateReqDTO requestParam){
+        String resultBodyStr = HttpUtil.post("http://localhost:8001/api/short-link/v1/update",JSON.toJSONString(requestParam));
+
+    }
     
     /** 
     * 分页查询短链接
@@ -63,4 +74,6 @@ public interface ShortLinkRemoteService {
         return JSON.parseObject(resultPageStr, new TypeReference<>() {   //  new TypeReference<>()作用：Result内含泛型对象，进行反序列化时不知道具体类型，帮助类型转换进行反序列化
         });
     }
+
+
 }
