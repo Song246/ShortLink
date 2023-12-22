@@ -7,6 +7,7 @@ import org.tckry.shortlink.project.common.convention.result.Result;
 import org.tckry.shortlink.project.common.convention.result.Results;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
+import org.tckry.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
@@ -40,6 +41,18 @@ public class ShortLinkController {
     }
 
     /**
+    * 修改短链接
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.project.common.convention.result.Result<java.lang.Void>
+    * @Date: 2023/12/22
+    */
+    @PutMapping("/api/short-link/v1/update")
+    public Result<Void> updateShortLink(@RequestBody ShortLinkUpdateReqDTO  requestParam) {
+        shortLinkService.updateShortLink(requestParam);
+        return Results.success();
+    }
+
+    /**
     * 分页查询短链接
     * @Param: [requestParam]
     * @return:
@@ -60,4 +73,6 @@ public class ShortLinkController {
     public Result<List<ShortLinkGroupCountQueryRespDTO>> listGroupShortLinkCount(@RequestParam List<String> requestParam) {
         return Results.success(shortLinkService.listGroupShortLinkCount(requestParam));
     }
+
+
 }

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
+import org.tckry.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
@@ -43,4 +44,13 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
     * @Date: 2023/12/21
     */
     List<ShortLinkGroupCountQueryRespDTO> listGroupShortLinkCount(List<String> requestParam);
+
+    /**
+    * 修改短链接
+    * @Param: [requestParam]
+    * @return: void
+    * @Date: 2023/12/22
+    */
+
+    void updateShortLink(ShortLinkUpdateReqDTO requestParam);
 }
