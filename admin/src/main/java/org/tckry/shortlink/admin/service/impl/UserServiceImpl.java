@@ -17,6 +17,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.tckry.shortlink.admin.common.biz.user.UserContext;
 import org.tckry.shortlink.admin.common.convention.exception.ClientException;
 import org.tckry.shortlink.admin.common.enums.UserErrorCodeEnum;
 import org.tckry.shortlink.admin.dao.entity.UserDO;
@@ -93,10 +94,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                     throw new ClientException(USER_EXIST); // 一般业务层用save，持久层采用insert
                 }
 
-
                 userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());    // 新数据插入布隆过滤器，保证布隆过滤器和数据库一致
-                // 注册用户创建默认分组
-                groupService.saveGroup("默认分组");
+                // 注册用户后创建默认分组
+                groupService.saveGroup(requestParam.getUsername(),"默认分组");
                 return;
             }else {
                 throw new ClientException(UserErrorCodeEnum.USER_NAME_EXIST);
