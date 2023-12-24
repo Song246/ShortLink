@@ -215,10 +215,10 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             ((HttpServletResponse)response).sendRedirect(originalLink);
             return;
         }
-        // 缓存中不存在，避免缓存穿透：去查一个数据库和Redis都不存在的短链接
-        // redis中没有缓存,缓存穿透，跳转的url在Redis不存在缓存，大量请求涌入数据库，防止大量请求涌入使用分布式锁或者布隆过滤器
+        // 缓存中不存在，避免缓存击穿：Redis中数据没有大量请求去数据库
+        // redis中没有缓存,缓存击穿，跳转的url在Redis不存在缓存，大量请求涌入数据库，防止大量请求涌入使用分布式锁+双重锁机制
         RLock lock = redissonClient.getLock(String.format(LOCK_GOTO_SHORT_LINK_KEY, fullShortUrl));
-        lock.lock();    // 分布式锁解决缓存穿透，大量数据库和redis不存在的数据去请求时只有一个数据获取到数据，只有一个数据能去查询
+        lock.lock();    // 分布式锁解决缓存击穿，redis缓存过期，导致大量请求去请求数据库，只有一个请求数据获取到锁去数据库查数据
         try {
             // 双重判定锁，第一个锁拿到数据并加入缓存后，后续的999个请求就没必要再去获取锁再解锁
             originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
@@ -242,7 +242,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                         .eq(BaseDO::getDelFlag, 0)
                         .eq(ShortLinkDO::getEnableStatus, 0);
                 ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
-                // 1000个相同请求数据x在数据库和redis都不存在，最先获取到锁的把x加入缓存， 后面999个就不会去数据库了
+                // 1000个相同请求数据xredis不存在，去请求数据库，最先获取到锁的把x加入缓存， 后面999个就不会去数据库了
                 // 第一个不存在的数据加载到缓存，后续数据就不会获取锁了
                 // 不为空通过gid查到完整连接进行跳转
                 if (shortLinkDO!=null){ // Redis中没有缓存，数据库有数据，数据加入缓存
