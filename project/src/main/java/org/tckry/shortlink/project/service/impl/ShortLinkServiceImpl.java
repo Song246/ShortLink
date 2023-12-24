@@ -37,11 +37,13 @@ import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import org.tckry.shortlink.project.service.ShortLinkService;
 import org.tckry.shortlink.project.toolkit.HashUtil;
+import org.tckry.shortlink.project.toolkit.LinkUtil;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import static org.tckry.shortlink.project.common.constant.RedisKeyConstant.*;
 
@@ -108,6 +110,14 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 throw new ServiceException("短链接重复生成");
             }
         }
+        // 缓存预热，把创建的短链接就加入缓存
+        stringRedisTemplate.opsForValue().set(
+                String.format(GOTO_SHORT_LINK_KEY,fullShortUrl),
+                requestParam.getOriginUrl(),LinkUtil.getLinkCacheValidTime(requestParam.getValidDate()),
+                TimeUnit.MILLISECONDS
+        );
+
+
         shortUriCreateCachePenetrationBloomFilter.add(fullShortUrl);
         return ShortLinkCreateRespDTO.builder()
                 .gid(requestParam.getGid())
@@ -215,6 +225,18 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             ((HttpServletResponse)response).sendRedirect(originalLink);
             return;
         }
+
+        boolean containsed = shortUriCreateCachePenetrationBloomFilter.contains(fullShortUrl);
+        if (!containsed) {  // 布隆过滤器不存在
+            return;
+        }
+        // 布隆过滤器存在，仍可能存在误判问题,查询Key是否存在空值，存在空值则代表在缓存中存在但是在数据库不存在，也避免去查询数据库
+        String gotoIsNullShortLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl));
+        // 布隆过滤器查询存在，但在redis 中空值key查询到了，说明是误判，redis存在但是数据库不存在，直接return
+        if (StrUtil.isNotBlank(gotoIsNullShortLink)) {
+            return;
+        }
+        // 第五步通过分布式锁仅让一个请求到达数据库
         // 缓存中不存在，避免缓存击穿：Redis中数据没有大量请求去数据库
         // redis中没有缓存,缓存击穿，跳转的url在Redis不存在缓存，大量请求涌入数据库，防止大量请求涌入使用分布式锁+双重锁机制
         RLock lock = redissonClient.getLock(String.format(LOCK_GOTO_SHORT_LINK_KEY, fullShortUrl));
@@ -232,7 +254,9 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
                 ShortLinkGotoDO shortLinkGotoDO = shortLinkGotoMapper.selectOne(linkGotoQueryWrapper);
                 if (shortLinkGotoDO==null) {
-                    // 严谨来说此处需要封控
+                    // 数据库不存在的null 值，加入Redis，设置缓存时间，
+                    // 6、通过数据库加载数据并将数据加载进缓存，数据不存在设置有效期
+                    stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl),"-",30, TimeUnit.MINUTES);
                     return;
                 }
 
@@ -246,6 +270,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 // 第一个不存在的数据加载到缓存，后续数据就不会获取锁了
                 // 不为空通过gid查到完整连接进行跳转
                 if (shortLinkDO!=null){ // Redis中没有缓存，数据库有数据，数据加入缓存
+                    // 6、通过数据库加载数据并将数据加载进缓存，数据存在不设置有效期
                     stringRedisTemplate.opsForValue().set(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),shortLinkDO.getOriginUrl());
                     ((HttpServletResponse)response).sendRedirect(shortLinkDO.getFullShortUrl());
                 }
