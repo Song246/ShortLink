@@ -2,6 +2,12 @@ package org.tckry.shortlink.project.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
@@ -10,6 +16,7 @@ import org.tckry.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -51,6 +58,13 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
     * @return: void
     * @Date: 2023/12/22
     */
-
     void updateShortLink(ShortLinkUpdateReqDTO requestParam);
+
+    /**
+    * 短链接跳转
+    * @Param: [shortUri, request, response] 短链接后缀、请求、响应
+    * @return: void
+    * @Date: 2023/12/23
+    */
+    void restoreUrl(String shortUri,ServletRequest request, ServletResponse response) throws IOException;
 }

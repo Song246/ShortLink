@@ -22,6 +22,13 @@ rules:
             shardingColumn: gid
             # 分片算法，对应 rules[0].shardingAlgorithms
             shardingAlgorithmName: link_table_hash_mod
+      t_link_goto:
+        actualDataNodes: ds_0.t_link_goto_${0..15}
+        tableStrategy:
+          standard:
+            # 分片键，使用full_short_url，唯一
+            shardingColumn: full_short_url
+            shardingAlgorithmName: link_goto_table_hash_mod
     # 分片算法
     shardingAlgorithms:
       # 数据表分片算法
@@ -29,6 +36,10 @@ rules:
         # 根据分片键 Hash 分片
         type: HASH_MOD
         # 分片数量，取多不取少，取少后期难以维护，按照标准16
+        props:
+          sharding-count: 16
+      link_goto_table_hash_mod:
+        type: HASH_MOD
         props:
           sharding-count: 16
 

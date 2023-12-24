@@ -1,8 +1,13 @@
 package org.tckry.shortlink.project.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 import org.tckry.shortlink.project.common.convention.result.Result;
 import org.tckry.shortlink.project.common.convention.result.Results;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
@@ -28,6 +33,13 @@ import java.util.List;
 public class ShortLinkController {
 
     private final ShortLinkService shortLinkService;
+
+
+    @GetMapping("/{short-uri}")
+    public void restoreUrl(@PathVariable("short-uri") String shortUri, ServletRequest request, ServletResponse response){
+        // 跳转
+        shortLinkService.restoreUrl(shortUri,request, response);
+    }
 
     /** 
     * 创建短链接
