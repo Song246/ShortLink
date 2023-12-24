@@ -13,6 +13,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
@@ -216,8 +217,9 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
     }
 
+    @SneakyThrows   //
     @Override
-    public void restoreUrl(String shortUri, ServletRequest request, ServletResponse response) throws IOException {
+    public void restoreUrl(String shortUri, ServletRequest request, ServletResponse response) {
         // 传入的短链接，先通过短链接去获取gid，再通过gid获取完整连接名跳转
         String serverName = request.getServerName();    // 域名
         String fullShortUrl = serverName + "/" + shortUri;
