@@ -229,12 +229,14 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
         boolean containsed = shortUriCreateCachePenetrationBloomFilter.contains(fullShortUrl);
         if (!containsed) {  // 布隆过滤器不存在
+            ((HttpServletResponse)response).sendRedirect("/page/notfound");
             return;
         }
         // 布隆过滤器存在，仍可能存在误判问题,查询Key是否存在空值，存在空值则代表在缓存中存在但是在数据库不存在，也避免去查询数据库
         String gotoIsNullShortLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl));
         // 布隆过滤器查询存在，但在redis 中空值key查询到了，说明是误判，redis存在但是数据库不存在，直接return
         if (StrUtil.isNotBlank(gotoIsNullShortLink)) {
+            ((HttpServletResponse)response).sendRedirect("/page/notfound");
             return;
         }
         // 第五步通过分布式锁仅让一个请求到达数据库
@@ -258,6 +260,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     // 数据库不存在的null 值，加入Redis，设置缓存时间，
                     // 6、通过数据库加载数据并将数据加载进缓存，数据不存在设置有效期
                     stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl),"-",30, TimeUnit.MINUTES);
+                    ((HttpServletResponse)response).sendRedirect("/page/notfound");
                     return;
                 }
 
@@ -274,6 +277,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     if(shortLinkDO.getValidDate()!=null && shortLinkDO.getValidDate().before(new Date())) {
                         // 数据库的记录有效期以过期，相当于无
                         stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl),"-",30, TimeUnit.MINUTES);
+                        ((HttpServletResponse)response).sendRedirect("/page/notfound");
                         return;
                     }
                     // 6、通过数据库加载数据并将数据加载进缓存，数据存在根据有效时间字段设置设置有效期
