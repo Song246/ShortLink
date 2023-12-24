@@ -40,6 +40,7 @@ import org.tckry.shortlink.project.toolkit.HashUtil;
 import org.tckry.shortlink.project.toolkit.LinkUtil;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -270,8 +271,16 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 // 第一个不存在的数据加载到缓存，后续数据就不会获取锁了
                 // 不为空通过gid查到完整连接进行跳转
                 if (shortLinkDO!=null){ // Redis中没有缓存，数据库有数据，数据加入缓存
-                    // 6、通过数据库加载数据并将数据加载进缓存，数据存在不设置有效期
-                    stringRedisTemplate.opsForValue().set(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),shortLinkDO.getOriginUrl());
+                    if(shortLinkDO.getValidDate()!=null && shortLinkDO.getValidDate().before(new Date())) {
+                        // 数据库的记录有效期以过期，相当于无
+                        stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl),"-",30, TimeUnit.MINUTES);
+                        return;
+                    }
+                    // 6、通过数据库加载数据并将数据加载进缓存，数据存在根据有效时间字段设置设置有效期
+                    stringRedisTemplate.opsForValue().set(
+                            String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),
+                            shortLinkDO.getOriginUrl(),
+                            LinkUtil.getLinkCacheValidTime(shortLinkDO.getValidDate()),TimeUnit.MILLISECONDS);
                     ((HttpServletResponse)response).sendRedirect(shortLinkDO.getFullShortUrl());
                 }
             }
