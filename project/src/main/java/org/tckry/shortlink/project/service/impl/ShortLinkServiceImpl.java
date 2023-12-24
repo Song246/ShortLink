@@ -2,6 +2,7 @@ package org.tckry.shortlink.project.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.text.StrBuilder;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -14,7 +15,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBloomFilter;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.tckry.shortlink.project.common.convention.exception.ClientException;
@@ -39,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.tckry.shortlink.project.common.constant.RedisKeyConstant.*;
+
 /**
  * 短链接接口实现层
  * @program: shortlink
@@ -53,6 +59,8 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
     private final RBloomFilter<String> shortUriCreateCachePenetrationBloomFilter;
     private final ShortLinkGotoMapper shortLinkGotoMapper;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final RedissonClient redissonClient;
 
     /**
     * 创建短链接
@@ -202,25 +210,53 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         // 传入的短链接，先通过短链接去获取gid，再通过gid获取完整连接名跳转
         String serverName = request.getServerName();    // 域名
         String fullShortUrl = serverName + "/" + shortUri;
-        LambdaQueryWrapper<ShortLinkGotoDO> linkGotoQueryWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class)
-                .eq(ShortLinkGotoDO::getFullShortUrl, fullShortUrl);
-        ShortLinkGotoDO shortLinkGotoDO = shortLinkGotoMapper.selectOne(linkGotoQueryWrapper);
-        if (shortLinkGotoDO==null) {
-            // 严谨来说此处需要封控
+        String originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
+        if (StrUtil.isNotBlank(originalLink)){  // 缓存中存在直接跳转
+            ((HttpServletResponse)response).sendRedirect(originalLink);
             return;
         }
+        // 缓存中不存在，避免缓存穿透：去查一个数据库和Redis都不存在的短链接
+        // redis中没有缓存,缓存穿透，跳转的url在Redis不存在缓存，大量请求涌入数据库，防止大量请求涌入使用分布式锁或者布隆过滤器
+        RLock lock = redissonClient.getLock(String.format(LOCK_GOTO_SHORT_LINK_KEY, fullShortUrl));
+        lock.lock();    // 分布式锁解决缓存穿透，大量数据库和redis不存在的数据去请求时只有一个数据获取到数据，只有一个数据能去查询
+        try {
+            // 双重判定锁，第一个锁拿到数据并加入缓存后，后续的999个请求就没必要再去获取锁再解锁
+            originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
+            if (StrUtil.isNotBlank(originalLink)){  // 双重判定锁，第一次获取锁期间某个请求去数据库获取数据并加入了缓存
+                ((HttpServletResponse)response).sendRedirect(originalLink);
+                return;
+
+            }else {
+                LambdaQueryWrapper<ShortLinkGotoDO> linkGotoQueryWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class)
+                        .eq(ShortLinkGotoDO::getFullShortUrl, fullShortUrl);
+
+                ShortLinkGotoDO shortLinkGotoDO = shortLinkGotoMapper.selectOne(linkGotoQueryWrapper);
+                if (shortLinkGotoDO==null) {
+                    // 严谨来说此处需要封控
+                    return;
+                }
+
+                LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
+                        .eq(ShortLinkDO::getGid, shortLinkGotoDO.getGid()) // 用户传的shortUri，拿不到link表分片的gid，通过路由表的方式
+                        .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
+                        .eq(BaseDO::getDelFlag, 0)
+                        .eq(ShortLinkDO::getEnableStatus, 0);
+                ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
+                // 1000个相同请求数据x在数据库和redis都不存在，最先获取到锁的把x加入缓存， 后面999个就不会去数据库了
+                // 第一个不存在的数据加载到缓存，后续数据就不会获取锁了
+                // 不为空通过gid查到完整连接进行跳转
+                if (shortLinkDO!=null){ // Redis中没有缓存，数据库有数据，数据加入缓存
+                    stringRedisTemplate.opsForValue().set(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),shortLinkDO.getOriginUrl());
+                    ((HttpServletResponse)response).sendRedirect(shortLinkDO.getFullShortUrl());
+                }
+            }
 
 
-        LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
-                .eq(ShortLinkDO::getGid, shortLinkGotoDO.getGid()) // 用户传的shortUri，拿不到link表分片的gid，通过路由表的方式
-                .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
-                .eq(BaseDO::getDelFlag, 0)
-                .eq(ShortLinkDO::getEnableStatus, 0);
-        ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
-        // 不为空通过gid查到完整连接进行跳转
-        if (shortLinkDO!=null){
-            ((HttpServletResponse)response).sendRedirect(shortLinkDO.getFullShortUrl());
+        } finally {  // 最后解锁
+            lock.unlock();
         }
+
+
     }
 
 
