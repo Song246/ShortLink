@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.dto.req.ShortLinkUpdateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
@@ -73,6 +74,18 @@ public interface ShortLinkRemoteService {
         return JSON.parseObject(resultPageStr, new TypeReference<>() {   //  new TypeReference<>()作用：Result内含泛型对象，进行反序列化时不知道具体类型，帮助类型转换进行反序列化
         });
     }
+
+    /** 
+    * 根据 URL 获取对应网站标题
+    * @Param: [url]
+    * @return: org.tckry.shortlink.admin.common.convention.result.Result<java.lang.String>
+    * @Date: 2023/12/24
+    */
+   default Result<String> getTitleByUrl(@RequestParam("url") String url) {
+       String resultStr = HttpUtil.get("http://localhost:8001/api/short-link/v1/title?url=" + url);
+       return JSON.parseObject(resultStr, new TypeReference<>() {   //  new TypeReference<>()作用：Result内含泛型对象，进行反序列化时不知道具体类型，帮助类型转换进行反序列化
+       });
+   }
 
 
 }

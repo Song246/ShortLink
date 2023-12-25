@@ -66,5 +66,5 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
     * @return: void
     * @Date: 2023/12/23
     */
-    void restoreUrl(String shortUri,ServletRequest request, ServletResponse response) throws IOException;
+    void restoreUrl(String shortUri,ServletRequest request, ServletResponse response);
 }
