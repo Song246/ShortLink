@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
+import org.tckry.shortlink.admin.dto.req.RecycleBinRecoverReqDTO;
 import org.tckry.shortlink.admin.dto.req.RecycleBinSaveReqDTO;
 import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
@@ -50,8 +51,20 @@ public class RecycleBinController {
      * @Date: 2023/12/21
      */
     @GetMapping("/api/short-link/admin/v1/recycle-bin/page")
-    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkRecycleBinPageReqDTO requestParam){
+    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(@RequestBody ShortLinkRecycleBinPageReqDTO requestParam){
         return recycleBinService.pageRecycleBinShortLink(requestParam);
 
+    }
+
+    /**
+     * 恢复短链接
+     * @Param: [requestParam]
+     * @return: org.tckry.shortlink.project.common.convention.result.Result<java.lang.Void>
+     * @Date: 2023/12/25
+     */
+    @PostMapping("/api/short-link/admin/v1/recycle-bin/recover")
+    public Result<Void> recoverRecycleBin(@RequestBody RecycleBinRecoverReqDTO requestParam) {
+        shortLinkRemoteService.recoverRecycleBin(requestParam);
+        return Results.success();
     }
 }

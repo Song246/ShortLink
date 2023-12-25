@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.tckry.shortlink.project.common.convention.result.Result;
 import org.tckry.shortlink.project.common.convention.result.Results;
+import org.tckry.shortlink.project.dto.req.RecycleBinRecoverReqDTO;
 import org.tckry.shortlink.project.dto.req.RecycleBinSaveReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkRecycleBinPageReqDTO;
@@ -28,6 +29,13 @@ public class RecycleBinController {
     private final RecycleBinService recycleBinService;
 
 
+    /**
+    * 保存回收站
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.project.common.convention.result.Result<java.lang.Void>
+    * @Date: 2023/12/25
+    */
+
     @PostMapping("/api/short-link/v1/recycle-bin/save")
     public Result<Void> saveRecycleBin(@RequestBody RecycleBinSaveReqDTO requestParam) {
         recycleBinService.saveRecycleBin(requestParam);
@@ -44,4 +52,18 @@ public class RecycleBinController {
     public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkRecycleBinPageReqDTO requestParam){ // GET 请求，body不带数据，这个get请求，它传递的是param（接在url后面），所以不拿requestbody接（请求体），不用@RequestBody
         return Results.success(recycleBinService.pageShortLink(requestParam));
     }
+
+    /** 
+    * 恢复短链接
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.project.common.convention.result.Result<java.lang.Void>
+    * @Date: 2023/12/25
+    */
+    @PostMapping("/api/short-link/v1/recycle-bin/recover")
+    public Result<Void> recoverRecycleBin(@RequestBody RecycleBinRecoverReqDTO requestParam) {
+        recycleBinService.recoverRecycleBin(requestParam);
+        return Results.success();
+    }
+
+
 }

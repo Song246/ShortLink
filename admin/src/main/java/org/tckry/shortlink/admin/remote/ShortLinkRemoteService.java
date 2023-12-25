@@ -6,6 +6,7 @@ import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.tckry.shortlink.admin.common.convention.result.Result;
+import org.tckry.shortlink.admin.dto.req.RecycleBinRecoverReqDTO;
 import org.tckry.shortlink.admin.dto.req.RecycleBinSaveReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkRecycleBinPageReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkUpdateReqDTO;
@@ -115,4 +116,14 @@ public interface ShortLinkRemoteService {
         });
     }
 
+    /** 
+    * 恢复短链接
+    * @Param: [requestParam]
+    * @return: 
+    * @Date: 2023/12/25
+    */
+    default void recoverRecycleBin(RecycleBinRecoverReqDTO requestParam){
+        HttpUtil.post("http://localhost:8001/api/short-link/v1/recycle-bin/recover",JSON.toJSONString(requestParam));
+
+    }
 }
