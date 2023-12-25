@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
 import org.tckry.shortlink.admin.dto.req.RecycleBinRecoverReqDTO;
+import org.tckry.shortlink.admin.dto.req.RecycleBinRemoveReqDTO;
 import org.tckry.shortlink.admin.dto.req.RecycleBinSaveReqDTO;
 import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
@@ -65,6 +66,18 @@ public class RecycleBinController {
     @PostMapping("/api/short-link/admin/v1/recycle-bin/recover")
     public Result<Void> recoverRecycleBin(@RequestBody RecycleBinRecoverReqDTO requestParam) {
         shortLinkRemoteService.recoverRecycleBin(requestParam);
+        return Results.success();
+    }
+
+    /**
+     * 移除短链接
+     * @Param: [requestParam]
+     * @return: org.tckry.shortlink.project.common.convention.result.Result<java.lang.Void>
+     * @Date: 2023/12/25
+     */
+    @PostMapping("/api/short-link/admin/v1/recycle-bin/remove")
+    public Result<Void> removeRecycleBin(@RequestBody RecycleBinRemoveReqDTO requestParam) {
+        shortLinkRemoteService.removeRecycleBin(requestParam);
         return Results.success();
     }
 }

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.dto.req.RecycleBinRecoverReqDTO;
+import org.tckry.shortlink.admin.dto.req.RecycleBinRemoveReqDTO;
 import org.tckry.shortlink.admin.dto.req.RecycleBinSaveReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkRecycleBinPageReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkUpdateReqDTO;
@@ -22,6 +23,7 @@ import java.util.Map;
 
 /**
  * 短链接中台远程调用服务
+ * service 层参数不加注解@RequestBody
  */
 public interface ShortLinkRemoteService {
 
@@ -124,6 +126,15 @@ public interface ShortLinkRemoteService {
     */
     default void recoverRecycleBin(RecycleBinRecoverReqDTO requestParam){
         HttpUtil.post("http://localhost:8001/api/short-link/v1/recycle-bin/recover",JSON.toJSONString(requestParam));
+    }
 
+    /**
+    * 移除短链接
+    * @Param: [requestParam]
+    * @return: void
+    * @Date: 2023/12/25
+    */
+    default void removeRecycleBin(RecycleBinRemoveReqDTO requestParam) {
+        HttpUtil.post("http://localhost:8001/api/short-link/v1/recycle-bin/remove",JSON.toJSONString(requestParam));
     }
 }

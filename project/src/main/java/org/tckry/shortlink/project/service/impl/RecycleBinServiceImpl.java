@@ -11,10 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
 import org.tckry.shortlink.project.dao.mapper.ShortLinkMapper;
-import org.tckry.shortlink.project.dto.req.RecycleBinRecoverReqDTO;
-import org.tckry.shortlink.project.dto.req.RecycleBinSaveReqDTO;
-import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
-import org.tckry.shortlink.project.dto.req.ShortLinkRecycleBinPageReqDTO;
+import org.tckry.shortlink.project.dto.req.*;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import org.tckry.shortlink.project.service.RecycleBinService;
 
@@ -85,5 +82,18 @@ public class RecycleBinServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLin
         // 恢复，不做缓存预热，只把删除时在缓存中的 null 删除
         stringRedisTemplate.delete(String.format(GOTO_IS_NULL_SHORT_LINK_KEY,requestParam.getFullShortUrl()));
 
+    }
+
+    @Override
+    public void removeRecycleBin(RecycleBinRemoveReqDTO requestParam) {
+        LambdaUpdateWrapper<ShortLinkDO> updateWrapper = Wrappers.lambdaUpdate(ShortLinkDO.class)
+                .eq(ShortLinkDO::getFullShortUrl, requestParam.getFullShortUrl())
+                .eq(ShortLinkDO::getGid, requestParam.getGid())
+                .eq(ShortLinkDO::getEnableStatus,1)
+                .eq(ShortLinkDO::getDelFlag,0);
+        //        ShortLinkDO shortLinkDO = ShortLinkDO.builder()
+        //                .enableStatus(1)
+        //                .build();
+        baseMapper.delete(updateWrapper);
     }
 }

@@ -2,16 +2,10 @@ package org.tckry.shortlink.project.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.tckry.shortlink.project.common.convention.result.Result;
 import org.tckry.shortlink.project.common.convention.result.Results;
-import org.tckry.shortlink.project.dto.req.RecycleBinRecoverReqDTO;
-import org.tckry.shortlink.project.dto.req.RecycleBinSaveReqDTO;
-import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
-import org.tckry.shortlink.project.dto.req.ShortLinkRecycleBinPageReqDTO;
+import org.tckry.shortlink.project.dto.req.*;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import org.tckry.shortlink.project.service.RecycleBinService;
 
@@ -62,6 +56,18 @@ public class RecycleBinController {
     @PostMapping("/api/short-link/v1/recycle-bin/recover")
     public Result<Void> recoverRecycleBin(@RequestBody RecycleBinRecoverReqDTO requestParam) {
         recycleBinService.recoverRecycleBin(requestParam);
+        return Results.success();
+    }
+
+    /**
+    * 移除短链接
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.project.common.convention.result.Result<java.lang.Void>
+    * @Date: 2023/12/25
+    */
+    @PostMapping("/api/short-link/v1/recycle-bin/remove")
+    public Result<Void> removeRecycleBin(@RequestBody RecycleBinRemoveReqDTO requestParam) {
+        recycleBinService.removeRecycleBin(requestParam);
         return Results.success();
     }
 

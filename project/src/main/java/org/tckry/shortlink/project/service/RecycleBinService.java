@@ -3,10 +3,7 @@ package org.tckry.shortlink.project.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
-import org.tckry.shortlink.project.dto.req.RecycleBinRecoverReqDTO;
-import org.tckry.shortlink.project.dto.req.RecycleBinSaveReqDTO;
-import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
-import org.tckry.shortlink.project.dto.req.ShortLinkRecycleBinPageReqDTO;
+import org.tckry.shortlink.project.dto.req.*;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 
 /** 
@@ -42,4 +39,13 @@ public interface RecycleBinService extends IService<ShortLinkDO>{
     */
     
     void recoverRecycleBin(RecycleBinRecoverReqDTO requestParam);
+
+    /**
+    * 移除短链接
+    * @Param: [requestParam]
+    * @return: void
+    * @Date: 2023/12/25
+    */
+
+    void removeRecycleBin(RecycleBinRemoveReqDTO requestParam);
 }
