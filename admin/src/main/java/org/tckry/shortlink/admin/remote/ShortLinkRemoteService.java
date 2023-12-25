@@ -5,8 +5,10 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.tckry.shortlink.admin.common.convention.result.Result;
+import org.tckry.shortlink.admin.dto.req.RecycleBinSaveReqDTO;
 import org.tckry.shortlink.admin.dto.req.ShortLinkUpdateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
@@ -29,7 +31,7 @@ public interface ShortLinkRemoteService {
     * @return:
     * @Date: 2023/12/21
     */
-    default Result<ShortLinkCreateRespDTO> createShortLink(ShortLinkCreateReqDTO requestParam){
+    default Result<ShortLinkCreateRespDTO> createShortLink(ShortLinkCreateReqDTO requestParam){ // 这里不加@RequestBody，中台调用后台，后台统一格式转json，中台之间都传对象
         String resultBodyStr = HttpUtil.post("http://localhost:8001/api/short-link/v1/create",JSON.toJSONString(requestParam));
         return JSON.parseObject(resultBodyStr,new TypeReference<>() {   //  new TypeReference<>()作用：Result内含泛型对象，进行反序列化时不知道具体类型，帮助类型转换进行反序列化
         });
@@ -41,7 +43,7 @@ public interface ShortLinkRemoteService {
      * @return: void
      * @Date: 2023/12/22
      */
-    default void updateShortLink(ShortLinkUpdateReqDTO requestParam){
+    default void updateShortLink(ShortLinkUpdateReqDTO requestParam){   // 这里不加@RequestBody，中台调用后台，后台统一格式转json，中台之间都传对象
         HttpUtil.post("http://localhost:8001/api/short-link/v1/update",JSON.toJSONString(requestParam));
     }
     
@@ -51,7 +53,7 @@ public interface ShortLinkRemoteService {
     * @return:  查询短链接响应
     * @Date: 2023/12/21
     */
-    default Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO requestParam){    // 接口内方法含方法体，default方法
+    default Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO requestParam){    // // 这里不加@RequestBody，中台调用后台，后台统一格式转json，中台之间都传对象
         Map<String,Object> requestMap = new HashMap<>();    // 请求GetMapping方式，传入的json数据通过Map进行放入自动解析
         requestMap.put("gid",requestParam.getGid());
         requestMap.put("current",requestParam.getCurrent());
@@ -87,5 +89,15 @@ public interface ShortLinkRemoteService {
        });
    }
 
+   /**
+   * 保存回收站
+   * @Param: [requestParam]
+   * @return: org.tckry.shortlink.admin.common.convention.result.Result<java.lang.Void>
+   * @Date: 2023/12/25
+   */
+   default void saveRecycleBin(RecycleBinSaveReqDTO requestParam){  // 这里不加@RequestBody，中台调用后台，后台统一格式转json，中台之间都传对象
+       HttpUtil.post("http://localhost:8001/api/short-link/v1/recycle-bin/save",JSON.toJSONString(requestParam));
+
+   }
 
 }

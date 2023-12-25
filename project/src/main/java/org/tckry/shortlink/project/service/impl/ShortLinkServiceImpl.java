@@ -230,23 +230,24 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         String serverName = request.getServerName();    // 域名
         String fullShortUrl = serverName + "/" + shortUri;
         String originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
-        if (StrUtil.isNotBlank(originalLink)){  // 缓存中存在直接跳转
+        if (StrUtil.isNotBlank(originalLink)){  // 缓存中存在原始连接直接跳转
             ((HttpServletResponse)response).sendRedirect(originalLink);
             return;
         }
-
-        boolean containsed = shortUriCreateCachePenetrationBloomFilter.contains(fullShortUrl);
-        if (!containsed) {  // 布隆过滤器不存在
+        // 缓存中不存在去布隆过滤器判断
+        boolean contained = shortUriCreateCachePenetrationBloomFilter.contains(fullShortUrl);
+        if (!contained) {  // 布隆过滤器不存在
             ((HttpServletResponse)response).sendRedirect("/page/notfound");
             return;
         }
-        // 布隆过滤器存在，仍可能存在误判问题,查询Key是否存在空值，存在空值则代表在缓存中存在但是在数据库不存在，也避免去查询数据库
+        // 布隆过滤器存在，仍可能存在误判问题,查询Key是否存在空值（查询的是数据库不存在的值），存在空值则代表在缓存中存在但是在数据库不存在，也避免去查询数据库
         String gotoIsNullShortLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl));
-        // 布隆过滤器查询存在，但在redis 中空值key查询到了，说明是误判，redis存在但是数据库不存在，直接return
+        // 布隆过滤器查询存在，但在redis 中空值key查询到了，说明是误判或者查询的不存在数据库的值，直接return
         if (StrUtil.isNotBlank(gotoIsNullShortLink)) {
             ((HttpServletResponse)response).sendRedirect("/page/notfound");
             return;
         }
+        // 布隆过滤器和缓存中都不存在，大量请求到达数据库请求同一数据，使用分布式锁，因为请求都是针对同一个数据，缓存击问题
         // 第五步通过分布式锁仅让一个请求到达数据库
         // 缓存中不存在，避免缓存击穿：Redis中数据没有大量请求去数据库
         // redis中没有缓存,缓存击穿，跳转的url在Redis不存在缓存，大量请求涌入数据库，防止大量请求涌入使用分布式锁+双重锁机制
@@ -259,44 +260,42 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 ((HttpServletResponse)response).sendRedirect(originalLink);
                 return;
 
-            }else {
-                LambdaQueryWrapper<ShortLinkGotoDO> linkGotoQueryWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class)
-                        .eq(ShortLinkGotoDO::getFullShortUrl, fullShortUrl);
+            }
+            LambdaQueryWrapper<ShortLinkGotoDO> linkGotoQueryWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class)
+                    .eq(ShortLinkGotoDO::getFullShortUrl, fullShortUrl);
 
-                ShortLinkGotoDO shortLinkGotoDO = shortLinkGotoMapper.selectOne(linkGotoQueryWrapper);
-                if (shortLinkGotoDO==null) {
-                    // 数据库不存在的null 值，加入Redis，设置缓存时间，
-                    // 6、通过数据库加载数据并将数据加载进缓存，数据不存在设置有效期
-                    stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl),"-",30, TimeUnit.MINUTES);
-                    ((HttpServletResponse)response).sendRedirect("/page/notfound");
-                    return;
-                }
-
-                LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
-                        .eq(ShortLinkDO::getGid, shortLinkGotoDO.getGid()) // 用户传的shortUri，拿不到link表分片的gid，通过路由表的方式
-                        .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
-                        .eq(BaseDO::getDelFlag, 0)
-                        .eq(ShortLinkDO::getEnableStatus, 0);
-                ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
-                // 1000个相同请求数据xredis不存在，去请求数据库，最先获取到锁的把x加入缓存， 后面999个就不会去数据库了
-                // 第一个不存在的数据加载到缓存，后续数据就不会获取锁了
-                // 不为空通过gid查到完整连接进行跳转
-                if (shortLinkDO!=null){ // Redis中没有缓存，数据库有数据，数据加入缓存
-                    if(shortLinkDO.getValidDate()!=null && shortLinkDO.getValidDate().before(new Date())) {
-                        // 数据库的记录有效期以过期，相当于无
-                        stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl),"-",30, TimeUnit.MINUTES);
-                        ((HttpServletResponse)response).sendRedirect("/page/notfound");
-                        return;
-                    }
-                    // 6、通过数据库加载数据并将数据加载进缓存，数据存在根据有效时间字段设置设置有效期
-                    stringRedisTemplate.opsForValue().set(
-                            String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),
-                            shortLinkDO.getOriginUrl(),
-                            LinkUtil.getLinkCacheValidTime(shortLinkDO.getValidDate()),TimeUnit.MILLISECONDS);
-                    ((HttpServletResponse)response).sendRedirect(shortLinkDO.getFullShortUrl());
-                }
+            ShortLinkGotoDO shortLinkGotoDO = shortLinkGotoMapper.selectOne(linkGotoQueryWrapper);
+            if (shortLinkGotoDO==null) {
+                // 数据库不存在的null 值，加入Redis，设置缓存时间，
+                // 6、通过数据库加载数据并将数据加载进缓存，数据不存在设置有效期
+                stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl),"-",30, TimeUnit.MINUTES);
+                ((HttpServletResponse)response).sendRedirect("/page/notfound");
+                return;
             }
 
+            LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
+                    .eq(ShortLinkDO::getGid, shortLinkGotoDO.getGid()) // 用户传的shortUri，拿不到link表分片的gid，通过路由表的方式
+                    .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
+                    .eq(BaseDO::getDelFlag, 0)
+                    .eq(ShortLinkDO::getEnableStatus, 0);
+            ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
+            // 1000个相同请求数据xredis不存在，去请求数据库，最先获取到锁的把x加入缓存， 后面999个就不会去数据库了
+            // 第一个不存在的数据加载到缓存，后续数据就不会获取锁了
+            // 不为空通过gid查到完整连接进行跳转
+            if (shortLinkDO ==null || shortLinkDO.getValidDate().before(new Date())){ // 数据库没有数据或者数据库有数据但是已过有效期，跳转notfound界面
+                // 数据库的记录有效期以过期，相当于无
+                stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl),"-",30, TimeUnit.MINUTES);
+                ((HttpServletResponse)response).sendRedirect("/page/notfound");
+                return;
+
+            }
+            // Redis中没有缓存，数据库有数据，数据加入缓存
+            // 6、通过数据库加载数据并将数据加载进缓存，数据存在根据有效时间字段设置设置有效期
+            stringRedisTemplate.opsForValue().set(
+                    String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),
+                    shortLinkDO.getOriginUrl(),
+                    LinkUtil.getLinkCacheValidTime(shortLinkDO.getValidDate()),TimeUnit.MILLISECONDS);
+            ((HttpServletResponse)response).sendRedirect(shortLinkDO.getFullShortUrl());
 
         } finally {  // 最后解锁
             lock.unlock();
