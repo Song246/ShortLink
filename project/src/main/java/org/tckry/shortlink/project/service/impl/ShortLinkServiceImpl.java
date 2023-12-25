@@ -282,7 +282,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             // 1000个相同请求数据xredis不存在，去请求数据库，最先获取到锁的把x加入缓存， 后面999个就不会去数据库了
             // 第一个不存在的数据加载到缓存，后续数据就不会获取锁了
             // 不为空通过gid查到完整连接进行跳转
-            if (shortLinkDO ==null || shortLinkDO.getValidDate().before(new Date())){ // 数据库没有数据或者数据库有数据但是已过有效期，跳转notfound界面
+            if (shortLinkDO ==null || (shortLinkDO.getValidDate()!=null&&shortLinkDO.getValidDate().before(new Date()))){ // 数据库没有数据或者数据库有数据但是已过有效期，跳转notfound界面
                 // 数据库的记录有效期以过期，相当于无
                 stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl),"-",30, TimeUnit.MINUTES);
                 ((HttpServletResponse)response).sendRedirect("/page/notfound");
