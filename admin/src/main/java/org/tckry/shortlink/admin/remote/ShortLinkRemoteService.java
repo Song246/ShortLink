@@ -100,4 +100,20 @@ public interface ShortLinkRemoteService {
 
    }
 
+    /**
+     * 分页查询回收站短链接
+     * @Param: [requestParam] 分页短链接请求参数
+     * @return:  查询短链接响应
+     * @Date: 2023/12/21
+     */
+    default Result<IPage<ShortLinkPageRespDTO>> pageRecycleBinShortLink(ShortLinkPageReqDTO requestParam){    // // 这里不加@RequestBody，中台调用后台，后台统一格式转json，中台之间都传对象
+        Map<String,Object> requestMap = new HashMap<>();    // 请求GetMapping方式，传入的json数据通过Map进行放入自动解析
+        requestMap.put("gid",requestParam.getGid());
+        requestMap.put("current",requestParam.getCurrent());
+        requestMap.put("size",requestParam.getSize());
+        String resultPageStr = HttpUtil.get("http://localhost:8001/api/short-link/v1/recycle-bin/page",requestMap);
+        return JSON.parseObject(resultPageStr, new TypeReference<>() {   //  new TypeReference<>()作用：Result内含泛型对象，进行反序列化时不知道具体类型，帮助类型转换进行反序列化
+        });
+    }
+
 }
