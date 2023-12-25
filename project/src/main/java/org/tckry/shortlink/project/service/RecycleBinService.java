@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
 import org.tckry.shortlink.project.dto.req.RecycleBinSaveReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
+import org.tckry.shortlink.project.dto.req.ShortLinkRecycleBinPageReqDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 
 /** 
@@ -30,5 +31,5 @@ public interface RecycleBinService extends IService<ShortLinkDO>{
      * @return:
      * @Date: 2023/12/20
      */
-    IPage<ShortLinkPageRespDTO> pageShortLink(ShortLinkPageReqDTO requestParam);
+    IPage<ShortLinkPageRespDTO> pageShortLink(ShortLinkRecycleBinPageReqDTO requestParam);
 }

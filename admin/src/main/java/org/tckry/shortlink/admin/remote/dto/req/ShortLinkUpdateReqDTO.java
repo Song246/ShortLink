@@ -1,4 +1,4 @@
-package org.tckry.shortlink.admin.dto.req;
+package org.tckry.shortlink.admin.remote.dto.req;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

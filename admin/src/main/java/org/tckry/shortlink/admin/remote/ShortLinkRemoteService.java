@@ -4,12 +4,11 @@ import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.dto.req.RecycleBinSaveReqDTO;
-import org.tckry.shortlink.admin.dto.req.ShortLinkUpdateReqDTO;
+import org.tckry.shortlink.admin.remote.dto.req.ShortLinkRecycleBinPageReqDTO;
+import org.tckry.shortlink.admin.remote.dto.req.ShortLinkUpdateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkCreateRespDTO;
@@ -106,9 +105,9 @@ public interface ShortLinkRemoteService {
      * @return:  查询短链接响应
      * @Date: 2023/12/21
      */
-    default Result<IPage<ShortLinkPageRespDTO>> pageRecycleBinShortLink(ShortLinkPageReqDTO requestParam){    // // 这里不加@RequestBody，中台调用后台，后台统一格式转json，中台之间都传对象
+    default Result<IPage<ShortLinkPageRespDTO>> pageRecycleBinShortLink(ShortLinkRecycleBinPageReqDTO requestParam){    // // 这里不加@RequestBody，中台调用后台，后台统一格式转json，中台之间都传对象
         Map<String,Object> requestMap = new HashMap<>();    // 请求GetMapping方式，传入的json数据通过Map进行放入自动解析
-        requestMap.put("gid",requestParam.getGid());
+        requestMap.put("gidList",requestParam.getGidList());  // 加上分组不利于检索， 这里去掉分组去中台处理分组
         requestMap.put("current",requestParam.getCurrent());
         requestMap.put("size",requestParam.getSize());
         String resultPageStr = HttpUtil.get("http://localhost:8001/api/short-link/v1/recycle-bin/page",requestMap);

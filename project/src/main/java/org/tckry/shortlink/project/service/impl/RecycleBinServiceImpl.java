@@ -13,6 +13,7 @@ import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
 import org.tckry.shortlink.project.dao.mapper.ShortLinkMapper;
 import org.tckry.shortlink.project.dto.req.RecycleBinSaveReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
+import org.tckry.shortlink.project.dto.req.ShortLinkRecycleBinPageReqDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import org.tckry.shortlink.project.service.RecycleBinService;
 
@@ -52,12 +53,12 @@ public class RecycleBinServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLin
     }
 
     @Override
-    public IPage<ShortLinkPageRespDTO> pageShortLink(ShortLinkPageReqDTO requestParam) {
+    public IPage<ShortLinkPageRespDTO> pageShortLink(ShortLinkRecycleBinPageReqDTO requestParam) {
         LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
-                .eq(ShortLinkDO::getGid, requestParam.getGid())
+                .in(ShortLinkDO::getGid, requestParam.getGidList())
                 .eq(ShortLinkDO::getEnableStatus, 1)
                 .eq(ShortLinkDO::getDelFlag, 0)
-                .orderByDesc(ShortLinkDO::getCreateTime);
+                .orderByDesc(ShortLinkDO::getUpdateTime);
         IPage<ShortLinkDO> resulPage = baseMapper.selectPage(requestParam,queryWrapper);   //ShortLinkPageReqDTO 继承了Page对象
         // ShortLinkDO 转 ShortLinkPageRespDTO
         return resulPage.convert(each-> {

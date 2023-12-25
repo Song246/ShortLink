@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.web.bind.annotation.*;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
-import org.tckry.shortlink.admin.dto.req.ShortLinkUpdateReqDTO;
+import org.tckry.shortlink.admin.remote.dto.req.ShortLinkUpdateReqDTO;
 import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
