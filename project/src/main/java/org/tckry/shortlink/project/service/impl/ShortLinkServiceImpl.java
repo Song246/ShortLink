@@ -7,8 +7,9 @@ import cn.hutool.core.lang.UUID;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.server.HttpServerRequest;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import cn.hutool.http.HttpUtil;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -29,6 +30,7 @@ import org.jsoup.nodes.Element;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -38,9 +40,11 @@ import org.tckry.shortlink.project.common.convention.exception.ServiceException;
 import org.tckry.shortlink.project.common.database.BaseDO;
 import org.tckry.shortlink.project.common.enums.ValiDateTypeEnum;
 import org.tckry.shortlink.project.dao.entity.LinkAccessStatsDO;
+import org.tckry.shortlink.project.dao.entity.LinkLocaleStatsDO;
 import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
 import org.tckry.shortlink.project.dao.entity.ShortLinkGotoDO;
 import org.tckry.shortlink.project.dao.mapper.LinkAccessStatsMapper;
+import org.tckry.shortlink.project.dao.mapper.LinkLocaleStatsMapper;
 import org.tckry.shortlink.project.dao.mapper.ShortLinkGotoMapper;
 import org.tckry.shortlink.project.dao.mapper.ShortLinkMapper;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
@@ -53,8 +57,6 @@ import org.tckry.shortlink.project.service.ShortLinkService;
 import org.tckry.shortlink.project.toolkit.HashUtil;
 import org.tckry.shortlink.project.toolkit.LinkUtil;
 
-import java.io.IOException;
-import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
@@ -62,6 +64,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.tckry.shortlink.project.common.constant.RedisKeyConstant.*;
+import static org.tckry.shortlink.project.common.constant.ShortLinkConstant.AMAP_REMOTE_URL;
 import static org.tckry.shortlink.project.toolkit.LinkUtil.getActualIp;
 
 /**
@@ -81,6 +84,10 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final StringRedisTemplate stringRedisTemplate;
     private final RedissonClient redissonClient;
     private final LinkAccessStatsMapper linkAccessStatsMapper;
+    private final LinkLocaleStatsMapper linkLocaleStatsMapper;
+
+    @Value("${short-link.stats.locale.amap-key}")
+    private String statsLocaleAmapKey;
 
     /**
     * 创建短链接
@@ -377,9 +384,36 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     .date(new Date())
                     .build();
             linkAccessStatsMapper.shortLinkStats(linkAccessStatsDO);
+            Map<String,Object> localeParamMap = new HashMap<>();
+            localeParamMap.put("key",statsLocaleAmapKey);
+            localeParamMap.put("ip",remoteAddr);
+            String localeRequestStr = HttpUtil.get(AMAP_REMOTE_URL,localeParamMap); // 请求高德接口，获取ip所在地区
+            JSONObject localeRequestObj = JSON.parseObject(localeRequestStr);
+            String infoCode = localeRequestObj.getString("infocode");
+
+            if (StrUtil.isNotBlank(infoCode) && StrUtil.equals(infoCode,"1000")){   // 1000返回正常
+                String province = localeRequestObj.getString("province");
+                Boolean unknownFlag = StrUtil.equals(province,"[]");
+                LinkLocaleStatsDO linkLocaleStatsDO = LinkLocaleStatsDO.builder()
+                        .province(unknownFlag?"未知":province)
+                        .city(unknownFlag?"未知":localeRequestObj.getString("city"))
+                        .adcode(unknownFlag?"未知":localeRequestObj.getString("adcode"))
+                        .cnt(1)
+                        .country("中国")
+                        .fullShortUrl(fullShortUrl)
+                        .gid(gid)
+                        .date(new Date())
+                        .build();
+                linkLocaleStatsMapper.shortLinkLocaleState(linkLocaleStatsDO);
+            }
+
+
+
+
         } catch (Throwable ex) {
             log.error("短链接访问统计异常");
         }
+
 
     }
 
