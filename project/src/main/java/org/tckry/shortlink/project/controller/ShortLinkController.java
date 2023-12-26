@@ -35,6 +35,13 @@ public class ShortLinkController {
     private final ShortLinkService shortLinkService;
 
 
+    /**
+    * 短链接跳转
+    * @Param: [shortUri, request, response]
+    * @return: void
+    * @Date: 2023/12/25
+    */
+
     @GetMapping("/{short-uri}")
     public void restoreUrl(@PathVariable("short-uri") String shortUri, ServletRequest request, ServletResponse response){
         // 跳转
