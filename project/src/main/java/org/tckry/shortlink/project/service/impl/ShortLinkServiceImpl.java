@@ -39,14 +39,8 @@ import org.tckry.shortlink.project.common.convention.exception.ClientException;
 import org.tckry.shortlink.project.common.convention.exception.ServiceException;
 import org.tckry.shortlink.project.common.database.BaseDO;
 import org.tckry.shortlink.project.common.enums.ValiDateTypeEnum;
-import org.tckry.shortlink.project.dao.entity.LinkAccessStatsDO;
-import org.tckry.shortlink.project.dao.entity.LinkLocaleStatsDO;
-import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
-import org.tckry.shortlink.project.dao.entity.ShortLinkGotoDO;
-import org.tckry.shortlink.project.dao.mapper.LinkAccessStatsMapper;
-import org.tckry.shortlink.project.dao.mapper.LinkLocaleStatsMapper;
-import org.tckry.shortlink.project.dao.mapper.ShortLinkGotoMapper;
-import org.tckry.shortlink.project.dao.mapper.ShortLinkMapper;
+import org.tckry.shortlink.project.dao.entity.*;
+import org.tckry.shortlink.project.dao.mapper.*;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
@@ -66,6 +60,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.tckry.shortlink.project.common.constant.RedisKeyConstant.*;
 import static org.tckry.shortlink.project.common.constant.ShortLinkConstant.AMAP_REMOTE_URL;
 import static org.tckry.shortlink.project.toolkit.LinkUtil.getActualIp;
+import static org.tckry.shortlink.project.toolkit.LinkUtil.getOs;
 
 /**
  * 短链接接口实现层
@@ -85,6 +80,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final RedissonClient redissonClient;
     private final LinkAccessStatsMapper linkAccessStatsMapper;
     private final LinkLocaleStatsMapper linkLocaleStatsMapper;
+    private final LinkOsStatsMapper linkOsStatsMapper;
 
     @Value("${short-link.stats.locale.amap-key}")
     private String statsLocaleAmapKey;
@@ -405,6 +401,16 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                         .date(new Date())
                         .build();
                 linkLocaleStatsMapper.shortLinkLocaleState(linkLocaleStatsDO);
+
+                LinkOsStatsDO linkOsStatsDO = LinkOsStatsDO.builder()
+                        .os(LinkUtil.getOs((HttpServletRequest) request))
+                        .cnt(1)
+                        .gid(gid)
+                        .fullShortUrl(fullShortUrl)
+                        .date(new Date())
+                        .build();
+
+                linkOsStatsMapper.shortLinkOsState(linkOsStatsDO);
             }
 
 
