@@ -60,7 +60,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.tckry.shortlink.project.common.constant.RedisKeyConstant.*;
 import static org.tckry.shortlink.project.common.constant.ShortLinkConstant.AMAP_REMOTE_URL;
 import static org.tckry.shortlink.project.toolkit.LinkUtil.getActualIp;
-import static org.tckry.shortlink.project.toolkit.LinkUtil.getOs;
 
 /**
  * 短链接接口实现层
@@ -81,6 +80,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final LinkAccessStatsMapper linkAccessStatsMapper;
     private final LinkLocaleStatsMapper linkLocaleStatsMapper;
     private final LinkOsStatsMapper linkOsStatsMapper;
+    private final LinkBrowserStatsMapper linkBrowserStatsMapper;
 
     @Value("${short-link.stats.locale.amap-key}")
     private String statsLocaleAmapKey;
@@ -409,8 +409,17 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                         .fullShortUrl(fullShortUrl)
                         .date(new Date())
                         .build();
-
                 linkOsStatsMapper.shortLinkOsState(linkOsStatsDO);
+
+
+                LinkBrowserStatsDO linkBrowserStatsDO = LinkBrowserStatsDO.builder()
+                        .browser(LinkUtil.getBrowser((HttpServletRequest)request))
+                        .cnt(1)
+                        .gid(gid)
+                        .fullShortUrl(fullShortUrl)
+                        .date(new Date())
+                        .build();
+                linkBrowserStatsMapper.shortLinkBrowserState(linkBrowserStatsDO);
             }
 
 
