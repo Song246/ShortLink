@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * 短链接监控统计接口实现层
  * @program: shortlink
  * @description:
  * @author: lydms
@@ -49,10 +50,11 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
         // 基础访问数据
         LinkAccessStatsDO pvUvUidStatsByShortLink = linkAccessLogsMapper.findPvUvUidStatsByShortLink(requestParam);
         // 基础访问详情
-        List<ShortLinkStatsAccessDailyRespDTO> daily = new ArrayList<>();
+        List<ShortLinkStatsAccessDailyRespDTO> daily = new ArrayList<>();   // 将参数中的开始、结束时间转为每一天的集合
         List<String> rangeDates = DateUtil.rangeToList(DateUtil.parse(requestParam.getStartDate()), DateUtil.parse(requestParam.getEndDate()), DateField.DAY_OF_MONTH).stream()
                 .map(DateUtil::formatDate)
                 .toList();
+        // 日期集合中有的日期当天没有数据，找到日期集合和listStatsByShortLink的交集
         rangeDates.forEach(each -> listStatsByShortLink.stream()
                 .filter(item -> Objects.equals(each, DateUtil.formatDate(item.getDate())))
                 .findFirst()
