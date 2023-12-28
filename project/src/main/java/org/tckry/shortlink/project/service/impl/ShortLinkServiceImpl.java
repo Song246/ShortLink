@@ -112,6 +112,9 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .describe(requestParam.getDescribe())
                 .shortUri(shortLinkSuffix)
                 .enableStatus(0)
+                .totalPv(0)
+                .totalUv(0)
+                .totalUip(0)
                 .fullShortUrl(fullShortUrl)
                 .favicon(getFavicon(requestParam.getOriginUrl()))
                 .build();
@@ -466,6 +469,9 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                         .fullShortUrl(fullShortUrl)
                         .build();
                 linkAccessLogsMapper.insert(linkAccessLogsDO);
+
+                baseMapper.incrementStats(gid,fullShortUrl,1,uvFirstFlag.get()?1:0,uipFirstFlag?1:0);
+
             }
 
 
