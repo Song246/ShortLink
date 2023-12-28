@@ -1,5 +1,6 @@
 package org.tckry.shortlink.admin.remote;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
@@ -9,13 +10,8 @@ import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.dto.req.RecycleBinRecoverReqDTO;
 import org.tckry.shortlink.admin.dto.req.RecycleBinRemoveReqDTO;
 import org.tckry.shortlink.admin.dto.req.RecycleBinSaveReqDTO;
-import org.tckry.shortlink.admin.remote.dto.req.ShortLinkRecycleBinPageReqDTO;
-import org.tckry.shortlink.admin.remote.dto.req.ShortLinkUpdateReqDTO;
-import org.tckry.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
-import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
-import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkCreateRespDTO;
-import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkGroupCountQueryRespDTO;
-import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkPageRespDTO;
+import org.tckry.shortlink.admin.remote.dto.req.*;
+import org.tckry.shortlink.admin.remote.dto.resp.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -136,5 +132,30 @@ public interface ShortLinkRemoteService {
     */
     default void removeRecycleBin(RecycleBinRemoveReqDTO requestParam) {
         HttpUtil.post("http://localhost:8001/api/short-link/v1/recycle-bin/remove",JSON.toJSONString(requestParam));
+    }
+
+    /**
+    * 访问单个短链接指定时间内监控数据
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.admin.common.convention.result.Result<org.tckry.shortlink.admin.remote.dto.resp.ShortLinkStatsRespDTO>
+    * @Date: 2023/12/27
+    */
+
+    default Result<ShortLinkStatsRespDTO> oneShortLinkStats(ShortLinkStatsReqDTO requestParam){
+        String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats", BeanUtil.beanToMap(requestParam));
+        return JSON.parseObject(resultBodyStr, new TypeReference<>() {
+        });
+    }
+
+    /** 
+    * 访问单个短链接指定时间内监控访问记录数据
+    * @Param: [requestParam]
+    * @return:
+    * @Date: 2023/12/27
+    */
+    default Result<IPage<ShortLinkStatsAccessRecordRespDTO>> shortLinkStatsAccessRecord(ShortLinkStatsAccessRecordReqDTO requestParam){
+        String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats/access-record", BeanUtil.beanToMap(requestParam));
+        return JSON.parseObject(resultBodyStr, new TypeReference<>() {
+        });
     }
 }
