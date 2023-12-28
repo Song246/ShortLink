@@ -17,4 +17,9 @@ public class ShortLinkPageReqDTO extends Page {    // Page 内包含size、curre
      * 分组标识
      */
     private String gid;
+
+    /**
+     * 排序标识
+     */
+    private String orderTag;
 }
