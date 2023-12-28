@@ -331,7 +331,13 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     }
 
 
-
+    /**
+     * 短链接跳转时进行监控
+     * @param fullShortUrl
+     * @param gid
+     * @param request
+     * @param response
+     */
     private void shortLinkStats(String fullShortUrl,String gid,ServletRequest request, ServletResponse response) {
         AtomicBoolean uvFirstFlag = new AtomicBoolean();    // lambda 中不能用普通Boolean，报错未初始化
         //        Boolean uvFirstFlag;
@@ -471,11 +477,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 linkAccessLogsMapper.insert(linkAccessLogsDO);
 
                 baseMapper.incrementStats(gid,fullShortUrl,1,uvFirstFlag.get()?1:0,uipFirstFlag?1:0);
-
             }
-
-
-
 
         } catch (Throwable ex) {
             log.error("短链接访问统计异常");
