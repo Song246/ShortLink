@@ -49,8 +49,9 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
         if (CollUtil.isEmpty(listStatsByShortLink)) {
             return null;
         }
+
         // 基础访问数据
-        LinkAccessStatsDO pvUvUidStatsByShortLink = linkAccessLogsMapper.findPvUvUidStatsByShortLink(requestParam);
+        LinkAccessStatsDO pvUvUidStatsByShortLink = linkAccessLogsMapper.findPvUvUipStatsByShortLink(requestParam);
         // 基础访问详情
         List<ShortLinkStatsAccessDailyRespDTO> daily = new ArrayList<>();   // 将参数中的开始、结束时间转为每一天的集合
         List<String> rangeDates = DateUtil.rangeToList(DateUtil.parse(requestParam.getStartDate()), DateUtil.parse(requestParam.getEndDate()), DateField.DAY_OF_MONTH).stream()
