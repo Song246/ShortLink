@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
 import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
+import org.tckry.shortlink.admin.remote.dto.req.ShortLinkGroupStatsReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkStatsAccessRecordReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkStatsReqDTO;
 import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkStatsAccessRecordRespDTO;
@@ -37,6 +38,23 @@ public class ShortLinkStatsController {
         return shortLinkRemoteService.oneShortLinkStats(requestParam);
     }
 
+    /**
+     * 访问分组短链接指定时间内监控数据
+     * @Param: [requestParam]
+     * @return:
+     * @Date: 2023/12/29
+     */
+    @GetMapping("/api/short-link/admin/v1/stats/group")
+    public Result<ShortLinkStatsRespDTO> groupShortLinkStats(ShortLinkGroupStatsReqDTO requestParam) {
+        return shortLinkRemoteService.groupShortLinkStats(requestParam);
+    }
+
+    /**
+    * 访问单个短链接指定时间内监控访问记录数据
+    * @Param: [requestParam]
+    * @return:
+    * @Date: 2023/12/29
+    */
     @GetMapping("/api/short-link/admin/v1/stats/access-record")
     public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> shortLinkStatsAccessRecord(ShortLinkStatsAccessRecordReqDTO requestParam) {
         return shortLinkRemoteService.shortLinkStatsAccessRecord(requestParam);
