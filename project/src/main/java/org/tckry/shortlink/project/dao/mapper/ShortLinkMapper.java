@@ -1,9 +1,11 @@
 package org.tckry.shortlink.project.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
+import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
 
 /** 
 * 短链接持久层
@@ -28,4 +30,12 @@ public interface ShortLinkMapper extends BaseMapper<ShortLinkDO> {
             @Param("totalUv") Integer totalUv,
             @Param("totalUip") Integer totalUip
     );
+
+    /** 
+    * 分页统计短链接
+    * @Param: [shortLinkPageReqDTO]
+    * @return: com.baomidou.mybatisplus.core.metadata.IPage<org.tckry.shortlink.project.dao.entity.ShortLinkDO>
+    * @Date: 2023/12/29
+    */
+    IPage<ShortLinkDO> pageLink(ShortLinkPageReqDTO shortLinkPageReqDTO);
 }

@@ -35,6 +35,10 @@ rules:
           standard:
             shardingColumn: gid
             shardingAlgorithmName: link_stats_today_hash_mod
+    # shardingsphere中绑定表，分片规则一致的表进行多表联查时，必须使用分片键进行关联，否则出现笛卡尔积关联或跨库关联
+    bindingTables:
+      - t_link,t_link_stats_today
+
     # 分片算法
     shardingAlgorithms:
       # 数据表分片算法

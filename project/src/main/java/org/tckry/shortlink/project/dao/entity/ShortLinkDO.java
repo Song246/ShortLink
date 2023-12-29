@@ -103,4 +103,21 @@ public class ShortLinkDO extends BaseDO {
      * 历史UIP
      */
     private Integer totalUip;
+
+    /**
+     * 今日PV,数据库表没有的字段，@TableField(exist = false)
+     */
+    @TableField(exist = false)
+    private Integer todayPv;
+    /**
+     * 今日UV
+     */
+    @TableField(exist = false)
+    private Integer todayUv;
+    /**
+     * 今日UIP
+     */
+    @TableField(exist = false)
+    private Integer todayUip;
+
 }

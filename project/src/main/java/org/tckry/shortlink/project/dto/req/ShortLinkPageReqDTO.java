@@ -19,4 +19,11 @@ public class ShortLinkPageReqDTO extends Page<ShortLinkDO> {    // Page 内包�
      * 分组标识
      */
     private String gid;
+
+    /**
+     * 排序标识
+     */
+    private String orderTag;
+
+
 }
