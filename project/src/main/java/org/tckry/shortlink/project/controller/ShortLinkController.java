@@ -10,9 +10,11 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.tckry.shortlink.project.common.convention.result.Result;
 import org.tckry.shortlink.project.common.convention.result.Results;
+import org.tckry.shortlink.project.dto.req.ShortLinkBatchCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
+import org.tckry.shortlink.project.dto.resp.ShortLinkBatchCreateRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
@@ -58,6 +60,18 @@ public class ShortLinkController {
     @PostMapping("/api/short-link/v1/create")
     public Result<ShortLinkCreateRespDTO> createShortLink(@RequestBody ShortLinkCreateReqDTO requestParam){
         return Results.success(shortLinkService.createShortLink(requestParam));
+    }
+
+
+    /**
+    * 批量创建短链接
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.project.common.convention.result.Result<ShortLinkBatchCreateRespDTO>
+    * @Date: 2023/12/30
+    */
+    @PostMapping("/api/short-link/v1/create/batch")
+    public Result<ShortLinkBatchCreateRespDTO> batchCreateShortLink(@RequestBody ShortLinkBatchCreateReqDTO requestParam) {
+        return Results.success(shortLinkService.batchCreateShortLink(requestParam));
     }
 
     /**

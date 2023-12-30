@@ -41,12 +41,11 @@ import org.tckry.shortlink.project.common.database.BaseDO;
 import org.tckry.shortlink.project.common.enums.ValiDateTypeEnum;
 import org.tckry.shortlink.project.dao.entity.*;
 import org.tckry.shortlink.project.dao.mapper.*;
+import org.tckry.shortlink.project.dto.req.ShortLinkBatchCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
-import org.tckry.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
-import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
-import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
+import org.tckry.shortlink.project.dto.resp.*;
 import org.tckry.shortlink.project.service.ShortLinkService;
 import org.tckry.shortlink.project.toolkit.HashUtil;
 import org.tckry.shortlink.project.toolkit.LinkUtil;
@@ -257,7 +256,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         String serverName = request.getServerName();    // 域名，不含端口
         String serverPort = Optional.of(request.getServerPort())
                 .filter(each -> !Objects.equals(each, "80"))
-                .map(String::valueOf)
+                .map(String::valueOf)   // request.getServerPort() 是int，转string
                 .map(each -> ":" + each)
                 .orElse("");
 
@@ -339,6 +338,33 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         }
 
 
+    }
+
+    @Override
+    public ShortLinkBatchCreateRespDTO batchCreateShortLink(ShortLinkBatchCreateReqDTO requestParam) {
+        List<String> originUrls = requestParam.getOriginUrls();
+        List<String> describes = requestParam.getDescribes();
+        List<ShortLinkBaseInfoRespDTO> result = new ArrayList<>();
+        for (int i = 0; i < originUrls.size(); i++) {
+            ShortLinkCreateReqDTO shortLinkCreateReqDTO = BeanUtil.toBean(requestParam, ShortLinkCreateReqDTO.class);
+            shortLinkCreateReqDTO.setOriginUrl(originUrls.get(i));
+            shortLinkCreateReqDTO.setDescribe(describes.get(i));
+            try {
+                ShortLinkCreateRespDTO shortLink = createShortLink(shortLinkCreateReqDTO);  // 调用创建单个短链接的函数
+                ShortLinkBaseInfoRespDTO linkBaseInfoRespDTO = ShortLinkBaseInfoRespDTO.builder()
+                        .fullShortUrl(shortLink.getFullShortUrl())
+                        .originUrl(shortLink.getOriginUrl())
+                        .describe(describes.get(i))
+                        .build();
+                result.add(linkBaseInfoRespDTO);
+            } catch (Throwable ex) {
+                log.error("批量创建短链接失败，原始参数：{}", originUrls.get(i));
+            }
+        }
+        return ShortLinkBatchCreateRespDTO.builder()
+                .total(result.size())
+                .baseLinkInfos(result)
+                .build();
     }
 
 

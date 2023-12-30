@@ -177,9 +177,20 @@ public interface ShortLinkRemoteService {
     * @return: org.tckry.shortlink.admin.common.convention.result.Result<com.baomidou.mybatisplus.core.metadata.IPage<org.tckry.shortlink.admin.remote.dto.resp.ShortLinkStatsAccessRecordRespDTO>>
     * @Date: 2023/12/30
     */
-
     default Result<IPage<ShortLinkStatsAccessRecordRespDTO>> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam){
         String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats/access-record/group", BeanUtil.beanToMap(requestParam));
+        return JSON.parseObject(resultBodyStr, new TypeReference<>() {
+        });
+    }
+
+    /**
+    * 批量创建短链接
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.admin.common.convention.result.Result<org.tckry.shortlink.admin.remote.dto.resp.ShortLinkBatchCreateRespDTO>
+    * @Date: 2023/12/30
+    */
+    default Result<ShortLinkBatchCreateRespDTO> batchCreateShortLink(ShortLinkBatchCreateReqDTO requestParam){
+        String resultBodyStr = HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/create/batch", JSON.toJSONString(requestParam));
         return JSON.parseObject(resultBodyStr, new TypeReference<>() {
         });
     }

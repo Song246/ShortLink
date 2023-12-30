@@ -9,9 +9,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.tckry.shortlink.project.dao.entity.ShortLinkDO;
+import org.tckry.shortlink.project.dto.req.ShortLinkBatchCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
+import org.tckry.shortlink.project.dto.resp.ShortLinkBatchCreateRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
@@ -67,4 +69,13 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
     * @Date: 2023/12/23
     */
     void restoreUrl(String shortUri,ServletRequest request, ServletResponse response);
+
+    /**
+    * 批量创建短链接
+    * @Param: [requestParam]
+    * @return: org.tckry.shortlink.project.dto.resp.ShortLinkBatchCreateRespDTO
+    * @Date: 2023/12/30
+    */
+
+    ShortLinkBatchCreateRespDTO batchCreateShortLink(ShortLinkBatchCreateReqDTO requestParam);
 }
