@@ -33,6 +33,9 @@ spring:
       suffix: .html
 
 short-link:
+  # 短链接默认域名加端口，生成的http url不指定端口默认80，但是请求中台端口为8001 http:// xxx/saf1f3 ，中间的xxx部分
+  domain:
+    default: nurl.ink:8001
   stats:
     locale:
       amap-key: 824c511f0997586ea016f979fdb23087

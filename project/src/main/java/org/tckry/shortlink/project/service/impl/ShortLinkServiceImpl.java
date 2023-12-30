@@ -87,8 +87,17 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final LinkNetworkStatsMapper linkNetworkStatsMapper;
     private final LinkStatsTodayMapper linkStatsTodayMapper;
 
+    /**
+     * 高德接口密钥
+     */
     @Value("${short-link.stats.locale.amap-key}")
     private String statsLocaleAmapKey;
+
+    /**
+     * 默认域名
+     */
+    @Value("${short-link.domain.default}")
+    private String createShortLinkDefaultDomain;
 
     /**
     * 创建短链接
@@ -100,10 +109,10 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     public ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam) {
         // 1、根据原始连接生成短链接的后缀
         String shortLinkSuffix = generateSuffix(requestParam);
-        String fullShortUrl = StrBuilder.create(requestParam.getDomain()).append("/").append(shortLinkSuffix).toString();
+        String fullShortUrl = StrBuilder.create(createShortLinkDefaultDomain).append("/").append(shortLinkSuffix).toString();
         // String fullShortUrl = requestParam.getDomain()+"/" + shortLinkSuffix;
         ShortLinkDO shortLinkDO = ShortLinkDO.builder()
-                .domain(requestParam.getDomain())
+                .domain(createShortLinkDefaultDomain)
                 .originUrl(requestParam.getOriginUrl())
                 .gid(requestParam.getGid())
                 .createdType(requestParam.getCreatedType())
@@ -118,6 +127,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .fullShortUrl(fullShortUrl)
                 .favicon(getFavicon(requestParam.getOriginUrl()))
                 .build();
+        // 不同表的分片键不同，使用goto 路由表记录
         ShortLinkGotoDO shortLinkGotoDO = ShortLinkGotoDO.builder()
                 .fullShortUrl(fullShortUrl)
                 .gid(requestParam.getGid()).build();
@@ -244,8 +254,14 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     @Override
     public void restoreUrl(String shortUri, ServletRequest request, ServletResponse response) {
         // 传入的短链接，先通过短链接去获取gid，再通过gid获取完整连接名跳转
-        String serverName = request.getServerName();    // 域名
-        String fullShortUrl = serverName + "/" + shortUri;
+        String serverName = request.getServerName();    // 域名，不含端口
+        String serverPort = Optional.of(request.getServerPort())
+                .filter(each -> !Objects.equals(each, "80"))
+                .map(String::valueOf)
+                .map(each -> ":" + each)
+                .orElse("");
+
+        String fullShortUrl = serverName + serverPort + "/" + shortUri;
         String originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
         if (StrUtil.isNotBlank(originalLink)){  // 缓存中存在原始连接直接跳转
             shortLinkStats(fullShortUrl,null,request,response);
@@ -299,7 +315,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     .eq(BaseDO::getDelFlag, 0)
                     .eq(ShortLinkDO::getEnableStatus, 0);
             ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
-            // 1000个相同请求数据xredis不存在，去请求数据库，最先获取到锁的把x加入缓存， 后面999个就不会去数据库了
+            // 1000个相同请求数据x redis不存在，去请求数据库，最先获取到锁的把x加入缓存， 后面999个就不会去数据库了
             // 第一个不存在的数据加载到缓存，后续数据就不会获取锁了
             // 不为空通过gid查到完整连接进行跳转
             if (shortLinkDO ==null || (shortLinkDO.getValidDate()!=null&&shortLinkDO.getValidDate().before(new Date()))){ // 数据库没有数据或者数据库有数据但是已过有效期，跳转notfound界面
