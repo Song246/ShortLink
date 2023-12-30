@@ -242,7 +242,22 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             baseMapper.delete(updateWrapper);
             shortLinkDO.setGid(requestParam.getGid());
             baseMapper.insert(shortLinkDO);
+        }
 
+        // 1、修改有效时间或者类型，但是redis之中存在GOTO_SHORT_LINK_KEY缓存，也能跳转，所以删除redis缓存
+        if (Objects.equals(hasShortLinkDO.getValidDateType(),requestParam.getValidDateType())
+                || !Objects.equals(hasShortLinkDO.getValidDate(),requestParam.getValidDate())) {
+            stringRedisTemplate.delete(String.format(GOTO_SHORT_LINK_KEY, requestParam.getFullShortUrl()));
+
+            // 2、无效变为有效，redis中缓存的空对象GOTO_IS_NULL_SHORT_LINK_KEY还存在，也需要进行删除
+            // 原连接过期时间不等于空且原链接有效时间在当前时间前，即原链接已过期，但是redis中存在原链接的 null 缓存
+            if (hasShortLinkDO.getValidDate() != null && hasShortLinkDO.getValidDate().before(new Date())){
+                // 修改后的连接为永久有效或者过期时间不等于空且有效时间在当前时间之后，即当前处于有效时间内，删除之前的GOTO_IS_NULL_SHORT_LINK_KEY 缓存
+                if (Objects.equals(requestParam.getValidDateType(),ValiDateTypeEnum.PERMANENT.getType())
+                || requestParam.getValidDate().after(new Date())){
+                    stringRedisTemplate.delete(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, requestParam.getFullShortUrl()));
+                }
+            }
         }
 
 
