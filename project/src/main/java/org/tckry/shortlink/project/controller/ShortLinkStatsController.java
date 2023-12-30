@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.tckry.shortlink.project.common.convention.result.Result;
 import org.tckry.shortlink.project.common.convention.result.Results;
+import org.tckry.shortlink.project.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkGroupStatsReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkStatsAccessRecordReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkStatsReqDTO;
@@ -57,5 +58,15 @@ public class ShortLinkStatsController {
         return Results.success(shortLinkStatsService.shortLinkStatsAccessRecord(requestParam));
     }
 
+    /**
+     * 访问分组短链接指定时间内访问记录监控数据
+     * @Param: [requestParam]
+     * @return: LinkStatsAccessRecordRespDTO>>
+     * @Date: 2023/12/27
+     */
+    @GetMapping("/api/short-link/v1/stats/access-record/group")
+    public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam) {
+        return Results.success(shortLinkStatsService.groupShortLinkStatsAccessRecord(requestParam));
+    }
 
 }

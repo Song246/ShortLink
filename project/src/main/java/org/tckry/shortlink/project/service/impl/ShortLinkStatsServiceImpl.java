@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.tckry.shortlink.project.dao.entity.*;
 import org.tckry.shortlink.project.dao.mapper.*;
+import org.tckry.shortlink.project.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkGroupStatsReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkStatsAccessRecordReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkStatsReqDTO;
@@ -257,6 +258,35 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
         List<Map<String,Object>> uvTypeList = linkAccessLogsMapper.selectUvTypeByUsers(
                 requestParam.getGid(),
                 requestParam.getFullShortUrl(),
+                requestParam.getStartDate(),
+                requestParam.getEndDate(),
+                userAccessLogsList);
+        actualResult.getRecords().forEach(each -> {
+            String uvType =  uvTypeList.stream()
+                    .filter(item->Objects.equals(each.getUser(),item.get("user")))
+                    .findFirst()
+                    .map(item -> item.get("user"))
+                    .map(Object::toString)
+                    .orElse("旧访客");
+            each.setUvType(uvType);
+        });
+
+        return actualResult;
+    }
+
+    @Override
+    public IPage<ShortLinkStatsAccessRecordRespDTO> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam) {
+        LambdaQueryWrapper<LinkAccessLogsDO> queryWrapper = Wrappers.lambdaQuery(LinkAccessLogsDO.class)
+                .eq(LinkAccessLogsDO::getGid, requestParam.getGid())
+                .between(LinkAccessLogsDO::getCreateTime,requestParam.getStartDate(),requestParam.getEndDate())
+                .eq(LinkAccessLogsDO::getDelFlag, 0)
+                .orderByDesc(LinkAccessLogsDO::getCreateTime);
+        // 将IPage<LinkAccessLogsDO>  转为IPage<ShortLinkStatsAccessRecordRespDTO>，问题LinkAccessLogsDO中没有ShortLinkStatsAccessRecordRespDTO需要的访客类型字段
+        IPage<LinkAccessLogsDO> linkAccessLogsDOIPage = linkAccessLogsMapper.selectPage(requestParam, queryWrapper);
+        IPage<ShortLinkStatsAccessRecordRespDTO> actualResult = linkAccessLogsDOIPage.convert(each -> BeanUtil.toBean(each, ShortLinkStatsAccessRecordRespDTO.class));
+        List<String> userAccessLogsList = actualResult.getRecords().stream().map(ShortLinkStatsAccessRecordRespDTO::getUser).toList();
+        List<Map<String,Object>> uvTypeList = linkAccessLogsMapper.selectGroupUvTypeByUsers(
+                requestParam.getGid(),
                 requestParam.getStartDate(),
                 requestParam.getEndDate(),
                 userAccessLogsList);

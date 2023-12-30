@@ -1,6 +1,7 @@
 package org.tckry.shortlink.project.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.tckry.shortlink.project.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkGroupStatsReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkStatsAccessRecordReqDTO;
 import org.tckry.shortlink.project.dto.req.ShortLinkStatsReqDTO;
@@ -32,7 +33,7 @@ public interface ShortLinkStatsService {
     ShortLinkStatsRespDTO groupShortLinkStats(ShortLinkGroupStatsReqDTO requestParam);
 
     /**
-    * 指定时间内访问记录监控数据
+    * 单个短链接指定时间内访问记录监控数据
     * @Param: [requestParam]
     * @return: org.tckry.shortlink.project.dto.resp.ShortLinkStatsAccessRecordRespDTO
     * @Date: 2023/12/27
@@ -40,4 +41,12 @@ public interface ShortLinkStatsService {
     IPage<ShortLinkStatsAccessRecordRespDTO> shortLinkStatsAccessRecord(ShortLinkStatsAccessRecordReqDTO requestParam);
 
 
+    /**
+    * 分组短链接指定时间内访问记录监控数据
+    * @Param: [requestParam]
+    * @return: com.baomidou.mybatisplus.core.metadata.IPage<org.tckry.shortlink.project.dto.resp.ShortLinkStatsAccessRecordRespDTO>
+    * @Date: 2023/12/30
+    */
+
+    IPage<ShortLinkStatsAccessRecordRespDTO> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam);
 }

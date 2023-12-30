@@ -148,6 +148,17 @@ public interface ShortLinkRemoteService {
         });
     }
 
+    /**
+     * 访问分组短链接指定时间内监控数据
+     * @Param: [requestParam]
+     * @return:
+     */
+    default Result<ShortLinkStatsRespDTO> groupShortLinkStats(ShortLinkGroupStatsReqDTO requestParam){
+        String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats/group", BeanUtil.beanToMap(requestParam));
+        return JSON.parseObject(resultBodyStr, new TypeReference<>() {
+        });
+    }
+
     /** 
     * 访问单个短链接指定时间内监控访问记录数据
     * @Param: [requestParam]
@@ -161,12 +172,14 @@ public interface ShortLinkRemoteService {
     }
 
     /**
-    * 访问分组短链接指定时间内监控数据
+    * 访问分组短链接指定时间内监控访问记录数据
     * @Param: [requestParam]
-    * @return:
+    * @return: org.tckry.shortlink.admin.common.convention.result.Result<com.baomidou.mybatisplus.core.metadata.IPage<org.tckry.shortlink.admin.remote.dto.resp.ShortLinkStatsAccessRecordRespDTO>>
+    * @Date: 2023/12/30
     */
-    default Result<ShortLinkStatsRespDTO> groupShortLinkStats(ShortLinkGroupStatsReqDTO requestParam){
-        String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats/group", BeanUtil.beanToMap(requestParam));
+
+    default Result<IPage<ShortLinkStatsAccessRecordRespDTO>> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam){
+        String resultBodyStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats/access-record/group", BeanUtil.beanToMap(requestParam));
         return JSON.parseObject(resultBodyStr, new TypeReference<>() {
         });
     }
