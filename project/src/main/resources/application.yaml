@@ -39,6 +39,16 @@ short-link:
   stats:
     locale:
       amap-key: 824c511f0997586ea016f979fdb23087
+  # 跳转域名白名单
+  goto-domain:
+    white-list:
+      enable: true
+      names: '白名单网站集合'
+      details:
+        - nageoffer.com
+        - zhihu.com
+        - juejin.com
+        - cnblogs.com
 
 mybatis-plus:
   configuration:

@@ -41,6 +41,7 @@ import org.tckry.shortlink.project.common.convention.exception.ClientException;
 import org.tckry.shortlink.project.common.convention.exception.ServiceException;
 import org.tckry.shortlink.project.common.database.BaseDO;
 import org.tckry.shortlink.project.common.enums.VailDateTypeEnum;
+import org.tckry.shortlink.project.config.GotoDomainWhiteListConfiguration;
 import org.tckry.shortlink.project.dao.entity.*;
 import org.tckry.shortlink.project.dao.mapper.*;
 import org.tckry.shortlink.project.dto.biz.ShortLinkStatsRecordDTO;
@@ -93,6 +94,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final LinkStatsTodayMapper linkStatsTodayMapper;
     private final LinkStatsTodayService linkStatsTodayService;
     private final DelayShortLinkStatsProducer delayShortLinkStatsProducer;
+    private final GotoDomainWhiteListConfiguration gotoDomainWhiteListConfiguration;
 
     /**
      * 高德接口密钥
@@ -114,6 +116,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     */
     @Override
     public ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam) {
+        verificationWhitelist(requestParam.getOriginUrl());
         // 1、根据原始连接生成短链接的后缀
         String shortLinkSuffix = generateSuffix(requestParam);
         String fullShortUrl = StrBuilder.create(createShortLinkDefaultDomain).append("/").append(shortLinkSuffix).toString();
@@ -274,6 +277,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateShortLink(ShortLinkUpdateReqDTO requestParam) {
+        verificationWhitelist(requestParam.getOriginUrl());
         LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
                 .eq(ShortLinkDO::getGid, requestParam.getOriginGid())   // 若修改gid，修改后的gid由于是分片键，查不到数据，使用原来的gid去查询
                 .eq(ShortLinkDO::getFullShortUrl, requestParam.getFullShortUrl())
@@ -959,6 +963,28 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         }
         return null;
 
+    }
+
+    /**
+    * 验证短链接是否在白名单
+    * @Param: [originUrl]
+    * @return: void
+    * @Date: 2024/1/2
+    */
+
+    private void verificationWhitelist(String originUrl) {
+        Boolean enable = gotoDomainWhiteListConfiguration.getEnable();
+        if (enable == null || !enable) {
+            return;
+        }
+        String domain = LinkUtil.extractDomain(originUrl);
+        if (StrUtil.isBlank(domain)) {
+            throw new ClientException("跳转链接填写错误");
+        }
+        List<String> details = gotoDomainWhiteListConfiguration.getDetails();
+        if (!details.contains(domain)) {
+            throw new ClientException("演示环境为避免恶意攻击，请生成以下网站跳转链接：" + gotoDomainWhiteListConfiguration.getNames());
+        }
     }
 
 }
