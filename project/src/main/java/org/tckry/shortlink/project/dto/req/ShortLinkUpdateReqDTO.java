@@ -26,6 +26,11 @@ public class ShortLinkUpdateReqDTO {
     private String FullShortUrl;
 
     /**
+     * 原始gid,修改短链接gid后去查询数据库查不到,.eq(ShortLinkDO::getGid, requestParam.getGid())
+     */
+    private String originGid;
+
+    /**
      * 分组标识
      */
     private String gid;
