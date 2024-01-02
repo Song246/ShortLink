@@ -929,7 +929,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 //            }
 //            customGenerateCount++;
             // 布隆过滤器,避免大量不存在的直接访问数据库造成缓存穿透=====存在误判
-            if (!shortUriCreateCachePenetrationBloomFilter.contains(requestParam.getDomain() + "/" + shortUri)){    // 布隆过滤器不存在直接可以创建
+            if (!shortUriCreateCachePenetrationBloomFilter.contains(createShortLinkDefaultDomain + "/" + shortUri)){    // 布隆过滤器不存在直接可以创建
                 break;
             }
             // 布隆过滤器存在重新生成 suffix
