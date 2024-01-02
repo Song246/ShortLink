@@ -1,6 +1,7 @@
 package org.tckry.shortlink.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.crypto.SecureUtil;
 import com.alibaba.fastjson2.JSON;
@@ -30,6 +31,7 @@ import org.tckry.shortlink.admin.dto.resp.UserRespDTO;
 import org.tckry.shortlink.admin.service.GroupService;
 import org.tckry.shortlink.admin.service.UserService;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -128,10 +130,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         if (userDO==null) {
             throw new ClientException("用户不存在");
         }
-        Boolean hasLogin = stringRedisTemplate.hasKey("login_"+requestParam.getUsername());
-        if (hasLogin!=null&& hasLogin){
-            throw new ClientException("用户已登录");
+        Map<Object, Object> hasLoginMap = stringRedisTemplate.opsForHash().entries("login_" + requestParam.getUsername());
+        // 若 redis 中已存在缓存，则直接返回结果，实现多账号登录
+        if (CollUtil.isNotEmpty(hasLoginMap)) {
+            String token = hasLoginMap.keySet().stream()
+                    .findFirst()
+                    .map(Object::toString)
+                    .orElseThrow(() -> new ClientException("用户登录错误"));
+            return new UserLoginRespDTO(token);
         }
+        // redis 中没有缓存首次登录，并把token加入缓存
         /*
         * Hash
         * key: login_用户名
