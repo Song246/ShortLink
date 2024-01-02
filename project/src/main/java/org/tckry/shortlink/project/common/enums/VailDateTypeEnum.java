@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
  * @create: 2023-12-22 20:01
  **/
 @RequiredArgsConstructor
-public enum ValiDateTypeEnum {
+public enum VailDateTypeEnum {
 
     /**
      * 永久有效期

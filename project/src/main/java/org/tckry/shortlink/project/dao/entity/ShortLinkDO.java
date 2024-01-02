@@ -120,4 +120,9 @@ public class ShortLinkDO extends BaseDO {
     @TableField(exist = false)
     private Integer todayUip;
 
+    /**
+     * 删除时间，短链接可能复用， 将这个和gid作为联合索引
+     */
+    private Long delTime;
+
 }
