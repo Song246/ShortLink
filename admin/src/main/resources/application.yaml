@@ -30,3 +30,10 @@ spring:
 short-link:
   group:
     max-num: 20
+  # 流量控制
+  flow-limit:
+    enable: true
+    # 时间窗口周期，单位秒
+    time-window: 1
+    # 时间窗口周期内单一用户最多操作API
+    max-access-count: 3
