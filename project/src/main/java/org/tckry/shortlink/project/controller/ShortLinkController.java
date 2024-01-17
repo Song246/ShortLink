@@ -1,5 +1,6 @@
 package org.tckry.shortlink.project.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 
 import jakarta.servlet.ServletRequest;
@@ -18,6 +19,7 @@ import org.tckry.shortlink.project.dto.resp.ShortLinkBatchCreateRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.project.dto.resp.ShortLinkPageRespDTO;
+import org.tckry.shortlink.project.handler.CustomBlockHandler;
 import org.tckry.shortlink.project.service.ShortLinkService;
 
 import java.util.List;
@@ -58,6 +60,12 @@ public class ShortLinkController {
     * @Date: 2023/12/20
     */
     @PostMapping("/api/short-link/v1/create")
+    @SentinelResource(
+            value = "create_short-link",
+            blockHandler = "createShortLinkBlockHandlerMethod",
+            blockHandlerClass = CustomBlockHandler.class
+    )
+    // SentinelResource注解，value和SentinelConfig中的配置resource一致，   blockHandler 熔断之后默认的降级规则   接口超过上限，默认会去调CustomBlockHandler的createShortLinkBlockHandlerMethod
     public Result<ShortLinkCreateRespDTO> createShortLink(@RequestBody ShortLinkCreateReqDTO requestParam){
         return Results.success(shortLinkService.createShortLink(requestParam));
     }

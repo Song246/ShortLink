@@ -70,6 +70,16 @@
             <artifactId>jsoup</artifactId>
             <version>${jsoup.version}</version>
         </dependency>
+
+        <!-- 下面两个依赖sentinel 相关-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-annotation-aspectj</artifactId>
+        </dependency>
     </dependencies>
 
     <!-- 打包插件，repackage 包含一个可直接启动的springboot jar包，，没有下面插件的话打包只有源码   -->
