@@ -93,6 +93,7 @@ public class ShortLinkStatsSaveConsumer implements StreamListener<String, MapRec
             if (StrUtil.isNotBlank(fullShortUrl)) {
                 String gid = producerMap.get("gid");
                 ShortLinkStatsRecordDTO statsRecord = JSON.parseObject(producerMap.get("statsRecord"), ShortLinkStatsRecordDTO.class);
+                // 完成真正统计，加入数据库
                 actualSaveShortLinkStats(fullShortUrl,gid,statsRecord);
             }
             // stream 放入消息消息体会越来越大，rk消息会存到磁盘，但是Redis stream消息存到内存资源太浪费，所以这里消费完直接删除释放内存（怎么保证一定消费完？catch异常，若消费异常会删除当前消息，）
@@ -102,6 +103,7 @@ public class ShortLinkStatsSaveConsumer implements StreamListener<String, MapRec
             // 若存入redis失败进入catch，但是catch过程中发生了异常导致消息删除失败
             // 如果消费者消费失败了但没有执行到删除标识，该怎么办???    消息消费过还要判断消息的流程是否走完，没走完抛出异常，mq去尝试重新消费，由于删除标识有有效期，过了有效期会
             messageQueueIdempotentHandler.delMessageProcessed(id.toString());
+            log.error("记录短链接监控消费异常",ex);
         }
         // 最终没有执行异常，设置true
         messageQueueIdempotentHandler.setAccomplish(id.toString());
