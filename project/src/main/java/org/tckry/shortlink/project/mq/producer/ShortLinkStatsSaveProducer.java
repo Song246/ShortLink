@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+import static org.tckry.shortlink.project.common.constant.RedisKeyConstant.SHORT_LINK_STATS_STREAM_TOPIC_KEY;
+
 /**
  * 短链接监控状态保存消息队列生产者
  * @program: shortlink
@@ -20,9 +22,6 @@ public class ShortLinkStatsSaveProducer {
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    @Value("short_link:stats-stream")
-    private String topic;
-
     /**
     * 发送延迟消费短链接统计
     * @Param: [producerMap]
@@ -31,6 +30,6 @@ public class ShortLinkStatsSaveProducer {
     */
     public void send(Map<String, String> producerMap) {
         // 向指定topic发送消息
-        stringRedisTemplate.opsForStream().add(topic,producerMap);
+        stringRedisTemplate.opsForStream().add(SHORT_LINK_STATS_STREAM_TOPIC_KEY,producerMap);
     }
 }
