@@ -152,14 +152,8 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         }catch (DuplicateKeyException ex){
             // 已经误判的短链接如何处理？ 去数据库查询一次，看是否真的存在
             // 布隆过滤器误判的概率低，在误判的情况下去攻击数据库的概率更低
-            LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
-                    .eq(ShortLinkDO::getFullShortUrl, fullShortUrl);
-
-            ShortLinkDO hasShortLinkDO = baseMapper.selectOne(queryWrapper);
-            if (hasShortLinkDO!=null){  // 确实数据库存在，没有误判
-                log.warn("短链接：{}重复入库",fullShortUrl);
-                throw new ServiceException("短链接重复生成");
-            }
+            // 由于在产生后缀generateSufffix的那边判断了，所以这里不用再去查询数据库了
+            throw new ServiceException(String.format("短链接:%s 重复生成",fullShortUrl));
         }
         // 缓存预热，把创建的短链接就加入缓存
         stringRedisTemplate.opsForValue().set(
@@ -926,7 +920,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 throw new ServiceException("短链接频繁生成，请稍后再试");
             }
             String originUrl = requestParam.getOriginUrl();
-            originUrl+=System.currentTimeMillis();  // url传入hash重新生成的还是原来的值，要改变url
+            originUrl+=UUID.randomUUID().toString();  // url传入hash重新生成的还是原来的值，要改变url
             shortUri =  HashUtil.hashToBase62(originUrl);
             // 存在的问题：频繁去查询数据库，缓存穿透
 //            LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
