@@ -1,6 +1,7 @@
 package org.tckry.shortlink.admin.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkRecycleBinPageReqDTO;
@@ -22,5 +23,5 @@ public interface RecycleBinService {
     * @Date: 2023/12/25
     */
 
-    Result<IPage<ShortLinkPageRespDTO>> pageRecycleBinShortLink(ShortLinkRecycleBinPageReqDTO requestParam);
+    Result<Page<ShortLinkPageRespDTO>> pageRecycleBinShortLink(ShortLinkRecycleBinPageReqDTO requestParam);
 }

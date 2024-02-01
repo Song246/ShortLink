@@ -3,6 +3,8 @@ server:
   port: 8000
 
 spring:
+  application:
+    name: short-link-admin
   datasource:
     # ShardingSphere 对 Driver 自定义，实现分库分表等隐藏逻辑,ShardingSphereDriver不再是MysqlDriver
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
@@ -26,6 +28,10 @@ spring:
       host: 127.0.0.1
       port: 6379
       # password:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
 
 short-link:
   group:

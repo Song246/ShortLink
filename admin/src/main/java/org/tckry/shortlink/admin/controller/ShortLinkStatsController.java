@@ -1,12 +1,13 @@
 package org.tckry.shortlink.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.tckry.shortlink.admin.common.convention.result.Result;
 import org.tckry.shortlink.admin.common.convention.result.Results;
-import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
+import org.tckry.shortlink.admin.remote.ShortLinkActualRemoteService;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkGroupStatsReqDTO;
 import org.tckry.shortlink.admin.remote.dto.req.ShortLinkStatsAccessRecordReqDTO;
@@ -25,8 +26,7 @@ import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkStatsRespDTO;
 @RequiredArgsConstructor
 public class ShortLinkStatsController {
 
-    // TODO 后续重构为Spring Cloud　Feign 调用
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService(){};
+    private final ShortLinkActualRemoteService shortLinkActualRemoteService;
 
     /**
     * 访问单个短链接指定时间内监控数据
@@ -36,7 +36,7 @@ public class ShortLinkStatsController {
     */
     @GetMapping("/api/short-link/admin/v1/stats")
     public Result<ShortLinkStatsRespDTO> shortLinkStats(ShortLinkStatsReqDTO requestParam){
-        return shortLinkRemoteService.oneShortLinkStats(requestParam);
+        return shortLinkActualRemoteService.oneShortLinkStats(requestParam.getFullShortUrl(),requestParam.getGid(),requestParam.getStartDate(),requestParam.getEndDate());
     }
 
     /**
@@ -47,7 +47,7 @@ public class ShortLinkStatsController {
      */
     @GetMapping("/api/short-link/admin/v1/stats/group")
     public Result<ShortLinkStatsRespDTO> groupShortLinkStats(ShortLinkGroupStatsReqDTO requestParam) {
-        return shortLinkRemoteService.groupShortLinkStats(requestParam);
+        return shortLinkActualRemoteService.groupShortLinkStats(requestParam.getGid(),requestParam.getStartDate(),requestParam.getEndDate());
     }
 
     /**
@@ -57,8 +57,8 @@ public class ShortLinkStatsController {
     * @Date: 2023/12/29
     */
     @GetMapping("/api/short-link/admin/v1/stats/access-record")
-    public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> shortLinkStatsAccessRecord(ShortLinkStatsAccessRecordReqDTO requestParam) {
-        return shortLinkRemoteService.shortLinkStatsAccessRecord(requestParam);
+    public Result<Page<ShortLinkStatsAccessRecordRespDTO>> shortLinkStatsAccessRecord(ShortLinkStatsAccessRecordReqDTO requestParam) {
+        return shortLinkActualRemoteService.shortLinkStatsAccessRecord(requestParam.getFullShortUrl(),requestParam.getGid(),requestParam.getStartDate(),requestParam.getEndDate());
     }
 
     /**
@@ -68,8 +68,8 @@ public class ShortLinkStatsController {
      * @Date: 2023/12/27
      */
     @GetMapping("/api/short-link/admin/v1/stats/access-record/group")
-    public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam) {
-        return shortLinkRemoteService.groupShortLinkStatsAccessRecord(requestParam);
+    public Result<Page<ShortLinkStatsAccessRecordRespDTO>> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam) {
+        return shortLinkActualRemoteService.groupShortLinkStatsAccessRecord(requestParam.getGid(),requestParam.getStartDate(),requestParam.getEndDate());
     }
 
 

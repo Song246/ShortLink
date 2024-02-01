@@ -21,7 +21,8 @@ import org.tckry.shortlink.admin.dao.mapper.GroupMapper;
 import org.tckry.shortlink.admin.dto.req.ShortLinkGroupSortReqDTO;
 import org.tckry.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import org.tckry.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
-import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
+import org.tckry.shortlink.admin.remote.ShortLinkActualRemoteService;
+
 import org.tckry.shortlink.admin.remote.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.tckry.shortlink.admin.service.GroupService;
 import org.tckry.shortlink.admin.toolkit.RandomGenerator;
@@ -40,11 +41,10 @@ import static org.tckry.shortlink.admin.common.constant.RedisCacheConstant.LOCK_
 @RequiredArgsConstructor
 public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implements GroupService {
 
+    private final ShortLinkActualRemoteService shortLinkActualRemoteService;
     private final RedissonClient redissonClient;
     @Value("${short-link.group.max-num}")
     private Integer groupMaxNum;
-
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService(){};
 
 
     @Override
@@ -100,7 +100,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
         List<GroupDO> groupDOList = baseMapper.selectList(queryWrapper);
 
         // 把每个分组内的短链接数量封装进分组集合ShortLinkGroupRespDTO
-        Result<List<ShortLinkGroupCountQueryRespDTO>> listResult = shortLinkRemoteService
+        Result<List<ShortLinkGroupCountQueryRespDTO>> listResult = shortLinkActualRemoteService
                 .listGroupShortLinkCount(groupDOList.stream().map(GroupDO::getGid).toList());// List<GroupDO>转 List<String>的gid集合
 
         List<ShortLinkGroupRespDTO> shortLinkGroupRespDTOList = BeanUtil.copyToList(groupDOList, ShortLinkGroupRespDTO.class);  // List<GroupDO>转 List<ShortLinkGroupRespDTO，但是集合内的ShortLinkGroupRespDTO数量字段还为空

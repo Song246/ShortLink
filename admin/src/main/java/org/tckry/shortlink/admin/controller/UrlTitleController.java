@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.tckry.shortlink.admin.common.convention.result.Result;
-import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
+import org.tckry.shortlink.admin.remote.ShortLinkActualRemoteService;
 
 
 /**
@@ -19,8 +19,7 @@ import org.tckry.shortlink.admin.remote.ShortLinkRemoteService;
 @RequiredArgsConstructor
 public class UrlTitleController {
 
-    // TODO 后续重构为Spring Cloud　Feign 调用
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService(){};
+    private final ShortLinkActualRemoteService shortLinkActualRemoteService;
 
     /**
     * 根据URL获取对应网站标题
@@ -30,7 +29,7 @@ public class UrlTitleController {
     */
     @GetMapping("/api/short-link/admin/v1/title")
     public Result<String> getTitleByUrl(@RequestParam("url") String url){
-        return shortLinkRemoteService.getTitleByUrl(url);
+        return shortLinkActualRemoteService.getTitleByUrl(url);
     }
 
 

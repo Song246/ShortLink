@@ -80,6 +80,11 @@
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-annotation-aspectj</artifactId>
         </dependency>
+        <!-- nacoS 服务注册,project被调用者，不调用其他，只需discovery-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
     </dependencies>
 
     <!-- 打包插件，repackage 包含一个可直接启动的springboot jar包，，没有下面插件的话打包只有源码   -->

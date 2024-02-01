@@ -2,6 +2,9 @@ server:
   port: 8001
 
 spring:
+  # 不加application 和 name 在nacos中找不到服务
+  application:
+    name: short-link-project
   datasource:
     # ShardingSphere 对 Driver 自定义，实现分库分表等隐藏逻辑,ShardingSphereDriver不再是MysqlDriver
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
@@ -29,6 +32,10 @@ spring:
     view:
       prefix: /templates/
       suffix: .html
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
 
 short-link:
   # 短链接默认域名加端口，生成的http url不指定端口默认80，但是请求中台端口为8001 http:// xxx/saf1f3 ，中间的xxx部分
